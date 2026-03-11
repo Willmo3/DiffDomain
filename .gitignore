@@ -1,0 +1,9 @@
+CMakeCache.txt
+CMakeFiles
+cmake-build-debug-system
+.cmake
+
+lib
+out
+release/DiffDomain
+.idea/copilot*

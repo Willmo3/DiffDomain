@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+echo "Installing and updating winterval project dependencies"
+# Move to project root
+cd ..
+
+parentname="$(basename "$(pwd)")"
+if [ $parentname != "DiffDomain" ] && [ $parentname != "diffdaomain" ]; then
+  echo "Attempted setup from wrong directory -- move to DiffDomain/scripts!"
+  exit 1
+fi
+
+# Dependencies contained in lib directory.
+if [ ! -d 'lib' ]; then
+  mkdir 'lib'
+fi
+cd lib
+
+if [[ -d "cereal" ]]; then
+  rm -r "cereal"
+fi
+
+curl -LOf "https://github.com/USCiLab/cereal/archive/v1.3.2.tar.gz" && tar -xf "v1.3.2.tar.gz" && mv "cereal-1.3.2/include/cereal/" "." && rm -r cereal-1.3.2 v1.3.2.tar.gz
