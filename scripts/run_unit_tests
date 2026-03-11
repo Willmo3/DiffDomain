@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+cd ../out/tests
+./test_caffeine &
+./test_winterval &
+./test_mixed &
+wait
+

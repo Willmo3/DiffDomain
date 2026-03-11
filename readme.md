@@ -20,6 +20,9 @@ These domains override operations defined in the Numeric concept.
 ### Building
 We've tested building with CMAKE >= 3.5 and Unix makefiles. The libraries should compile with `gcc` or `clang`.
 
+* navigate to `project_root/scripts`
+* execute `./update_deps`
+* navigate back to the project root
 * (recommended) in the project root, make a temporary directory `build`. `cd` into `build`.
 * Execute `cmake -DCMAKE_BUILD_TYPE=Release ..`
 * Execute `make`
