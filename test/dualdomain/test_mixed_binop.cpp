@@ -5,7 +5,7 @@
 #include <cmath>
 #include <gtest/gtest.h>
 
-#include "DualDomain/MixedForm.hpp"
+#include "MixedForm/MixedForm.hpp"
 
 TEST(mixed_binop, test_mixed_addition) {
     auto a = MixedForm(AffineForm(Winterval(2, 3)), Winterval(-1, 2));

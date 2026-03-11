@@ -3,7 +3,7 @@
 //
 
 #include <gtest/gtest.h>
-#include "DualDomain/MixedForm.hpp"
+#include "MixedForm/MixedForm.hpp"
 
 TEST(mixed_unop, test_mixed_abs) {
     auto form = MixedForm(Winterval(-10, 3));
