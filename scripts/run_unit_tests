@@ -4,5 +4,6 @@ cd ../out/tests
 ./test_caffeine &
 ./test_winterval &
 ./test_mixed &
+./test_dualnumber &
 wait
 

@@ -3,3 +3,10 @@ add_subdirectory(Winterval)
 add_subdirectory(Caffeine)
 add_subdirectory(MixedForm)
 
+# Uncomment for separate real numbered library
+# add_library(real Real/Real.cpp)
+
+# Uncomment for unified domain library
+add_library(domains Real/Real.cpp)
+target_link_libraries(domains winterval caffeine dualdomain)
+
