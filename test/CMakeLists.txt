@@ -11,5 +11,5 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ../../../out/tests)
 
 add_subdirectory(affine)
 add_subdirectory(winterval)
-add_subdirectory(dualdomain)
+add_subdirectory(mixedform)
 add_subdirectory(dualnumber)
