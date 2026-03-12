@@ -54,6 +54,10 @@ public:
      */
     AffineForm();
     /**
+     * @param value Exact value to center affine form around, no noise symbols added.
+     */
+    AffineForm(double value);
+    /**
      * @param center Real number center for affine form.
      * @param starting_coeffs error coefficients to prime the affine form with
      */

@@ -46,6 +46,7 @@ AffineForm::AffineForm(const Winterval &interval): _center((interval.min() + int
     _coefficients(std::unordered_map<noise_symbol_t, double>()) {
     _coefficients.insert(std::pair(new_noise_symbol(), (interval.min() - interval.max()) / 2));
 }
+AffineForm::AffineForm(double value): _center(value), _coefficients(std::unordered_map<noise_symbol_t, double>()) {}
 AffineForm::AffineForm(): _center(0), _coefficients(std::unordered_map<noise_symbol_t, double>()) {}
 
 /*

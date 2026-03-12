@@ -21,6 +21,10 @@ Winterval::Winterval(double min, double max) {
         _max = min;
     }
 }
+Winterval::Winterval(double value) {
+    _min = value;
+    _max = value;
+}
 Winterval::Winterval() : _min(0), _max(0) {}
 Winterval::~Winterval() = default;
 

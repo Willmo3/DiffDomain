@@ -63,6 +63,11 @@ concept Numeric = requires(T a, uint32_t nat, double real, std::ostream &out) {
     { a.split(nat)    } -> std::convertible_to<std::vector<T>>;
 
     /*
+     * Constructors
+     */
+    { T(real) }         -> std::convertible_to<T>;
+
+    /*
      * Utility operations
      */
     { out << a   }      -> std::convertible_to<std::ostream&>;

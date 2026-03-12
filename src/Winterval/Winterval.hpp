@@ -26,6 +26,10 @@ public:
      * @param max Maximum value in interval, inclusive.
      */
     Winterval(double min, double max);
+    /**
+     * @param value Value to form an exact bound around.
+     */
+    Winterval(double value);
     ~Winterval();
 
     /*

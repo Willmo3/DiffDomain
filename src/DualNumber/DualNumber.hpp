@@ -27,6 +27,10 @@ public:
      */
     DualNumber() = default;
     /**
+     * @param primal Primal (function) value. Derivative value is initialized to zero.
+     */
+    explicit DualNumber(double primal) : _primal_value(T(primal)), _deriv_value(T(0)) {}
+    /**
      * @param primal Primal (function) value.
      * @param deriv  Derivative value.
      */

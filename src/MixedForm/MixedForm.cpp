@@ -22,6 +22,10 @@ MixedForm::MixedForm(const Winterval &interval_rep) :
     _affine_rep(interval_rep),
     _intersected_bounds(interval_rep) {}
 
+MixedForm::MixedForm(double value):
+    _affine_rep(value),
+    _intersected_bounds(value) {}
+
 MixedForm::MixedForm() :
     _affine_rep(AffineForm()),
     _intersected_bounds(Winterval()) {}

@@ -42,6 +42,11 @@ public:
     explicit MixedForm(const Winterval &interval_rep);
 
     /**
+     * @param value Exact value to center affine and interval representations around
+     */
+    explicit MixedForm(double value);
+
+    /**
      * Default constructor, useful for serialization.
      * Create an empty MixedForm by calling default constructor on subcomponents.
      */
