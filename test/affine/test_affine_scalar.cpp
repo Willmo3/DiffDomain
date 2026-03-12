@@ -47,3 +47,23 @@ TEST(affine_scalar, sub) {
     ASSERT_EQ(-4, min);
     ASSERT_EQ(1, max);
 }
+
+TEST(affine_scalar, mult_by_zero) {
+    // Multiplying by zero must collapse the form to a point at zero.
+    auto result = AffineForm(Winterval(-3, 7)) * 0.0;
+    ASSERT_NEAR(result.center(), 0.0, 0.001);
+    ASSERT_NEAR(result.radius(), 0.0, 0.001);
+}
+
+TEST(affine_scalar, mult_by_one_identity) {
+    // Multiplying by one must preserve the interval.
+    auto a = AffineForm(Winterval(-3, 7));
+    ASSERT_EQ((a * 1.0).to_interval(), a.to_interval());
+}
+
+TEST(affine_scalar, mult_by_negative) {
+    // [-2,3] * -1 = [-3, 2]
+    auto result = AffineForm(Winterval(-2, 3)) * -1.0;
+    ASSERT_NEAR(result.min(), -3.0, 0.001);
+    ASSERT_NEAR(result.max(),  2.0, 0.001);
+}

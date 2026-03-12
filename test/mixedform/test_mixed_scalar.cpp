@@ -30,3 +30,20 @@ TEST(mixed_scalar, division) {
     result = form / 0;
     EXPECT_EQ(result.interval_bounds(), Winterval(-INFINITY, INFINITY));
 }
+TEST(mixed_scalar, mult_by_zero) {
+    // Multiplying by 0 must collapse bounds to [0, 0].
+    auto form = MixedForm(Winterval(1, 5));
+    EXPECT_EQ((form * 0.0).interval_bounds(), Winterval(0, 0));
+}
+
+TEST(mixed_scalar, mult_by_negative) {
+    // [1,3] * -2 = [-6, -2]
+    auto form = MixedForm(Winterval(1, 3));
+    EXPECT_EQ((form * -2.0).interval_bounds(), Winterval(-6, -2));
+}
+
+TEST(mixed_scalar, add_negative_scalar) {
+    // Adding a negative scalar shifts bounds left.
+    auto form = MixedForm(Winterval(2, 5));
+    EXPECT_EQ((form + -1.0).interval_bounds(), Winterval(1, 4));
+}

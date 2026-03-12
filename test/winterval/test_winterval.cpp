@@ -197,3 +197,100 @@ TEST(winterval, comparisons) {
     ASSERT_FALSE(a >= 3);
     ASSERT_FALSE(a > 2);
 }
+
+// ── Additional coverage ───────────────────────────────────────────────────────
+
+TEST(winterval, reversed_bounds_constructor) {
+    // Constructor must swap min/max when given in descending order.
+    auto w = Winterval(5, 2);
+    ASSERT_EQ(2, w.min());
+    ASSERT_EQ(5, w.max());
+}
+
+TEST(winterval, equality_and_inequality) {
+    ASSERT_TRUE(Winterval(1, 3) == Winterval(1, 3));
+    ASSERT_FALSE(Winterval(1, 3) == Winterval(1, 4));
+    ASSERT_TRUE(Winterval(1, 3) != Winterval(1, 4));
+    ASSERT_FALSE(Winterval(1, 3) != Winterval(1, 3));
+}
+
+TEST(winterval, degenerate_point_interval) {
+    auto w = Winterval(3, 3);
+    ASSERT_EQ(3, w.min());
+    ASSERT_EQ(3, w.max());
+    ASSERT_EQ(3, w.mid());
+    ASSERT_EQ(0, w.radius());
+    ASSERT_TRUE(w.contains(3));
+    ASSERT_FALSE(w.contains(2));
+}
+
+TEST(winterval, mul_both_mixed_sign) {
+    // [-1,2] * [-2,3]: corner products are 2,-3,-4,6 → [-4, 6]
+    auto result = Winterval(-1, 2) * Winterval(-2, 3);
+    ASSERT_EQ(-4, result.min());
+    ASSERT_EQ(6, result.max());
+}
+
+TEST(winterval, div_strictly_positive_divisor) {
+    // [2,4] / [1,2]: candidates 2,4,1,2 → [1, 4]
+    auto result = Winterval(2, 4) / Winterval(1, 2);
+    ASSERT_EQ(1, result.min());
+    ASSERT_EQ(4, result.max());
+}
+
+TEST(winterval, pow_even_positive_interval) {
+    // [1,3]^2 = [1, 9]
+    auto result = Winterval(1, 3).pow(2);
+    ASSERT_EQ(1, result.min());
+    ASSERT_EQ(9, result.max());
+}
+
+TEST(winterval, pow_odd_negative_interval) {
+    // [-3,-1]^3 = [-27, -1] (monotone for odd powers)
+    auto result = Winterval(-3, -1).pow(3);
+    ASSERT_EQ(-27, result.min());
+    ASSERT_EQ(-1, result.max());
+}
+
+TEST(winterval, abs_all_positive) {
+    // abs is the identity for positive intervals.
+    auto result = Winterval(2, 5).abs();
+    ASSERT_EQ(2, result.min());
+    ASSERT_EQ(5, result.max());
+}
+
+TEST(winterval, abs_all_negative) {
+    // [-5,-2] → [2, 5]
+    auto result = Winterval(-5, -2).abs();
+    ASSERT_EQ(2, result.min());
+    ASSERT_EQ(5, result.max());
+}
+
+TEST(winterval, scalar_negative_multiply) {
+    // [1,3] * -2 = [-6, -2]
+    auto result = Winterval(1, 3) * -2.0;
+    ASSERT_EQ(-6, result.min());
+    ASSERT_EQ(-2, result.max());
+}
+
+TEST(winterval, split_into_one) {
+    // Splitting into one part must return the original interval.
+    auto splits = Winterval(2, 6).split(1);
+    ASSERT_EQ(1u, splits.size());
+    ASSERT_EQ(Winterval(2, 6), splits[0]);
+}
+
+TEST(winterval, union_with_subsumes) {
+    // When one interval contains the other, the union equals the larger one.
+    ASSERT_EQ(Winterval(1, 5), Winterval(1, 5).union_with(Winterval(2, 3)));
+    // Commutative.
+    ASSERT_EQ(Winterval(1, 5), Winterval(2, 3).union_with(Winterval(1, 5)));
+}
+
+TEST(winterval, contains_exact_boundaries) {
+    auto w = Winterval(1, 5);
+    ASSERT_TRUE(w.contains(1));   // inclusive lower bound
+    ASSERT_TRUE(w.contains(5));   // inclusive upper bound
+    ASSERT_FALSE(w.contains(0));
+    ASSERT_FALSE(w.contains(6));
+}

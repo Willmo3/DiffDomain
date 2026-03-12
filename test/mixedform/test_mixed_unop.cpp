@@ -15,3 +15,20 @@ TEST(mixed_unop, test_mixed_pow) {
     auto result = form.pow(2);
     EXPECT_EQ(result.interval_bounds(), Winterval(-6, 9));
 }
+TEST(mixed_unop, test_mixed_pow_zero) {
+    // x^0 = 1 for any x ≠ 0.
+    auto form = MixedForm(Winterval(2, 4));
+    EXPECT_EQ(form.pow(0).interval_bounds(), Winterval(1, 1));
+}
+
+TEST(mixed_unop, test_mixed_pow_one_identity) {
+    // x^1 = x.
+    auto form = MixedForm(Winterval(2, 4));
+    EXPECT_EQ(form.pow(1).interval_bounds(), form.interval_bounds());
+}
+
+TEST(mixed_unop, test_mixed_abs_positive_interval) {
+    // abs is the identity on a positive interval.
+    auto form = MixedForm(Winterval(1, 5));
+    EXPECT_EQ(form.abs().interval_bounds(), Winterval(1, 5));
+}

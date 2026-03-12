@@ -34,3 +34,30 @@ TEST(affine_unop, pow) {
     ASSERT_NEAR(value.center(), 3.375, 0.001);
     ASSERT_NEAR(value.radius(), 4.625, 0.001);
 }
+
+TEST(affine_unop, pow_zero) {
+    // Any form to the power 0 is the constant 1.
+    auto value = AffineForm(Winterval(-5, 3)).pow(0);
+    ASSERT_NEAR(value.center(), 1.0, 0.001);
+    ASSERT_NEAR(value.radius(), 0.0, 0.001);
+}
+
+TEST(affine_unop, pow_one_identity) {
+    // Power of 1 must preserve the interval bounds.
+    auto a = AffineForm(Winterval(1, 4));
+    ASSERT_EQ(a.pow(1).to_interval(), a.to_interval());
+}
+
+TEST(affine_unop, pow_two_soundness) {
+    // [1,3]^2: exact range is [1,9]; the affine approximation must be a sound over-approximation.
+    auto result = AffineForm(Winterval(1, 3)).pow(2);
+    ASSERT_LE(result.min(), 1.0);
+    ASSERT_GE(result.max(), 9.0);
+}
+
+TEST(affine_unop, pow_two_positive_interval_soundness) {
+    // [2,4]^2: exact range [4,16]; result must contain it.
+    auto result = AffineForm(Winterval(2, 4)).pow(2);
+    ASSERT_LE(result.min(), 4.0);
+    ASSERT_GE(result.max(), 16.0);
+}
