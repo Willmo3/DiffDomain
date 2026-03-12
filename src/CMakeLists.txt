@@ -8,5 +8,5 @@ add_subdirectory(MixedForm)
 
 # Uncomment for unified domain library
 add_library(domains Real/Real.cpp)
-target_link_libraries(domains winterval caffeine dualdomain)
+target_link_libraries(domains winterval caffeine mixedform)
 

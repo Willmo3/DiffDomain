@@ -200,7 +200,6 @@ public:
     /*
      * Utility functions
      */
-
     template<class Archive>
     void serialize(Archive& archive) {
         archive(cereal::make_nvp("primal", primal_value),
