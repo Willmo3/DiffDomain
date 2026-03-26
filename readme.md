@@ -6,12 +6,15 @@ It is codesigned with the PDEnclose project, but can be used externally.
 
 ## Dependencies
 * cereal serialization library
+* eigen vector library
 
 ## Design
-DiffDomain includes three domains:
+DiffDomain includes five domains:
 * Winterval: standard interval arithmetic
 * Caffeine: affine interval arithmetic
-* DualDomain: affine-interval reduced product
+* MixedForm: affine-interval reduced product
+* DualNumber: automatic differentiation over an arbitrary numeric domain
+* SampleRange: unsound sampling of a given range
 
 These domains override operations defined in the Numeric concept. 
 
