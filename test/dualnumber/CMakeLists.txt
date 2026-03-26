@@ -4,6 +4,6 @@ add_executable(test_dualnumber
         test_dual_unop.cpp
         test_dual_comparison.cpp
         test_dual_misc.cpp)
-target_link_libraries(test_dualnumber winterval GTest::gtest_main)
+target_link_libraries(test_dualnumber domains GTest::gtest_main)
 include(GoogleTest)
 

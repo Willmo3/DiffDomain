@@ -21,3 +21,11 @@ if [[ -d "cereal" ]]; then
 fi
 
 curl -LOf "https://github.com/USCiLab/cereal/archive/v1.3.2.tar.gz" && tar -xf "v1.3.2.tar.gz" && mv "cereal-1.3.2/include/cereal/" "." && rm -r cereal-1.3.2 v1.3.2.tar.gz
+
+
+if [[ -d "Eigen" ]]; then
+  rm -r "Eigen"
+fi
+
+eigen_name="eigen-5.0.1"
+curl -LOf "https://gitlab.com/libeigen/eigen/-/archive/5.0.1/$eigen_name.tar.gz" && tar -xf "$eigen_name.tar.gz" && cd "$eigen_name" && mv "Eigen" ".." && cd ".." && rm -r "$eigen_name" "$eigen_name.tar.gz"

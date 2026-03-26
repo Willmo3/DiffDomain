@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 
 #include "DualNumber/DualNumber.hpp"
+#include "Real/Real.hpp"
 #include "Winterval/Winterval.hpp"
 
 // x = 3, dx/dx = 1  (the independent variable)
@@ -15,6 +16,9 @@ static DualNumber<Winterval> makeX() { return { Winterval(3, 3), Winterval(1, 1)
 TEST(dual_unop, pow_zero) {
     // f^0 = 1 (constant), derivative = 0
     EXPECT_EQ(makeX().pow(0), DualNumber(Winterval(1, 1), Winterval(0, 0)));
+}
+TEST(dual_unop, pow_zero_scalar) {
+    EXPECT_EQ(3, DualNumber(Real(1), Real(1)).pow(3).deriv_value());
 }
 
 TEST(dual_unop, pow_one) {
