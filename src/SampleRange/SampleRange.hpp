@@ -17,7 +17,8 @@
  */
 class SampleRange final {
 public:
-    static constexpr uint32_t SAMPLED_VALUES = 128;
+    // Change this value to sample more or less data
+    static constexpr uint32_t SAMPLED_VALUES = 2048;
 
     /*
      * Constructors

@@ -132,7 +132,7 @@ bool SampleRange::operator>=(double scalar) const {
 /*
  * Compositional operations
  */
-
+// TODO: reason about how to use union and split over sample ranges
 SampleRange SampleRange::union_with(const SampleRange &rhs) const {
     auto union_min = std::min(min(), rhs.min());
     auto union_max = std::max(max(), rhs.max());
@@ -160,12 +160,7 @@ std::vector<SampleRange> SampleRange::split(uint32_t n_splits) const {
  */
 
 std::ostream &operator<<(std::ostream &os, const SampleRange &sr) {
-    os << "SampleRange([" << sr.min() << ", " << sr.max() << "], samples={";
-    for (int i = 0; i < sr._samples.size(); ++i) {
-        if (i > 0) os << ", ";
-        os << sr._samples(i);
-    }
-    os << "})";
+    os << "s" << "[" << sr.min() << ", " << sr.max() << "]";
     return os;
 }
 
