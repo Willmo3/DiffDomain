@@ -156,6 +156,13 @@ public:
         // Mixed sign (e.g. an interval spanning zero): conservative bound.
         return { _primal_value.abs(), _deriv_value.abs() };
     }
+    /**
+     * @return A new dual number representing the result of exp with chain rule applied.
+     */
+    DualNumber exp() const {
+        auto exp_primal = _primal_value.exp();
+        return { exp_primal, exp_primal * _deriv_value };
+    }
 
     /*
      * Compositional operations

@@ -63,3 +63,12 @@ TEST(dual_unop, abs_mixed_sign_interval) {
     EXPECT_EQ(result, DualNumber(Winterval(0, 3), Winterval(1, 1)));
 }
 
+TEST(dual_unop, exp) {
+    DualNumber x(Winterval(0, 0), Winterval(1, 1));
+    auto result = x.exp();
+    EXPECT_NEAR(result.primal_ref().min(), 1.0, 1e-6);
+    EXPECT_NEAR(result.primal_ref().max(), 1.0, 1e-6);
+    EXPECT_NEAR(result.deriv_ref().min(), 1.0, 1e-6);
+    EXPECT_NEAR(result.deriv_ref().max(), 1.0, 1e-6);
+}
+
