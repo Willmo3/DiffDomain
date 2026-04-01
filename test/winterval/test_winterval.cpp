@@ -73,6 +73,10 @@ TEST(winterval, div) {
 }
 
 TEST(winterval, tanh) {
+    auto w = Winterval(-0.5, 0.5).tanh();
+    ASSERT_NEAR(-0.4621, w.min(), 1e-4);
+    ASSERT_NEAR(0.4621, w.max(), 1e-4);
+
     auto left = Winterval(-1, 4).tanh().tanh();
     ASSERT_NEAR(-0.642015, left.min(), 1e-6);
     ASSERT_NEAR(0.761312, left.max(), 1e-6);
