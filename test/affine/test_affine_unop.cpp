@@ -61,3 +61,9 @@ TEST(affine_unop, pow_two_positive_interval_soundness) {
     ASSERT_LE(result.min(), 4.0);
     ASSERT_GE(result.max(), 16.0);
 }
+
+TEST(affine_unop, exp) {
+    auto result = AffineForm(Winterval(1, 2)).exp();
+    ASSERT_NEAR(result.min(), -2.816363, 1e-5);
+    ASSERT_NEAR(result.max(), 11.771873, 1e-5);
+}

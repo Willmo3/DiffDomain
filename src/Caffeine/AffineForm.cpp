@@ -214,6 +214,30 @@ AffineForm AffineForm::pow(uint32_t power) const {
 
     return result;
 }
+AffineForm AffineForm::exp() const {
+    if (radius() == INFINITY || radius() == NAN) {
+        return AffineForm(Winterval(0, INFINITY));
+    }
+
+    auto interval = this->to_interval();
+    auto min = interval.min();
+    auto max = interval.max();
+    auto exp_min = std::exp(min);
+    auto exp_max = std::exp(max);
+
+    // Linear interpolation of (min, exp(min)) and (max, exp(max)) fns
+    auto alpha = (exp_max - exp_min) / (max - min);
+    auto log_alpha = std::log(alpha); // max point
+
+    // zeta = offset of center
+    auto zeta = alpha * (1 - log_alpha);
+
+    // error of new noise symbol
+    auto max_delta = alpha * (log_alpha - (1 - min)) + exp_min;
+    auto delta = max_delta / 2; // Convert to radius, coeff of new noise symbol.
+
+    return approximate_affine_form(alpha, zeta, delta);
+}
 AffineForm AffineForm::union_with(const AffineForm &other) const {
     auto interval1 = this->to_interval();
     auto interval2 = other.to_interval();

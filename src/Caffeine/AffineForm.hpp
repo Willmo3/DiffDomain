@@ -98,6 +98,11 @@ public:
      */
     AffineForm pow(uint32_t power) const;
 
+    /**
+     * @return An affine approximation of the exponential of this form.
+     */
+    AffineForm exp() const;
+
     /*
      * Binary affine operations
      */
