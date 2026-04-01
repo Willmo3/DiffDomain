@@ -166,6 +166,9 @@ MixedForm MixedForm::pow(uint32_t pow) const {
     // TODO: fix powers to be only unsigned.
     return { _affine_rep.pow(pow), _intersected_bounds.pow(pow) };
 }
+MixedForm MixedForm::exp() const {
+    return { _affine_rep.exp(), _intersected_bounds.exp() };
+}
 
 /*
  * Internal helpers

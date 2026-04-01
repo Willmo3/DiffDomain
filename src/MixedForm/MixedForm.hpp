@@ -99,11 +99,10 @@ public:
      * Unary Wixed operations
      */
     MixedForm pow(uint32_t power) const;
-    /**
-     * @return Absolute value of interval bounds of this form.
-     * Affine form is not considered -- abs is poorly defined for affine forms.
-     */
+
     MixedForm abs() const;
+
+    MixedForm exp() const;
 
     /*
      * Wixed-scalar operations
