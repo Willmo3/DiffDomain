@@ -82,6 +82,12 @@ TEST(winterval, tanh) {
     ASSERT_NEAR(0.761312, left.max(), 1e-6);
 }
 
+TEST(winterval, exp) {
+    auto w = Winterval(0, 1).exp();
+    ASSERT_NEAR(1.0, w.min(), 1e-6);
+    ASSERT_NEAR(2.71828, w.max(), 1e-5);
+}
+
 TEST(winterval, pow) {
     auto base = Winterval(-1, 4);
 

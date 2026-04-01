@@ -123,6 +123,13 @@ public:
     Winterval tanh() const;
 
     /**
+     * Compute the exponential of an interval.
+     * Since exp is monotonic, it is sufficient to apply it to the lower, upper bounds.
+     * @return A new interval whose value is e^x where x is this interval.
+     */
+    Winterval exp() const;
+
+    /**
      * Compute an interval to some constant power.
      * @param power Power to raise the interval to.
      * Note that for intervals, integer powers should always be nonnegative -- we represent as an int to comply with idiomatic Cpp.

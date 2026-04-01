@@ -197,6 +197,9 @@ Winterval Winterval::operator/(double rhs) const {
 Winterval Winterval::tanh() const {
     return { std::tanh(_min), std::tanh(_max) };
 }
+Winterval Winterval::exp() const {
+    return { std::exp(_min), std::exp(_max) };
+}
 Winterval Winterval::pow(int power) const {
     if (power < 0) {
         throw std::invalid_argument("Attempted interval exponentiation with negative power!");
