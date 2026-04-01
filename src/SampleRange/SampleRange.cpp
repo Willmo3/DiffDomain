@@ -89,6 +89,10 @@ SampleRange SampleRange::abs() const {
     return { _samples.array().abs() };
 }
 
+SampleRange SampleRange::exp() const {
+    return { _samples.array().exp() };
+}
+
 /*
  * Comparison operators
  */

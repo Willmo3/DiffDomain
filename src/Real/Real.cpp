@@ -84,6 +84,9 @@ std::ostream& operator<<(std::ostream &os, Real rhs) {
 Real Real::tanh() const {
     return { std::tanh(_value) };
 }
+Real Real::exp() const {
+    return { std::exp(_value) };
+}
 Real Real::pow(uint32_t power) const {
     return { std::pow(_value, power) };
 }

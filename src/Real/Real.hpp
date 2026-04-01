@@ -38,6 +38,7 @@ public:
     bool operator>(const Real &right) const;
 
     Real tanh() const;
+    Real exp() const;
     Real pow(uint32_t power) const;
     Real abs() const;
 

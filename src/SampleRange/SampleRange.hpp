@@ -86,6 +86,10 @@ public:
      * @return A new SampleRange with absolute value of each sample.
      */
     [[nodiscard]] SampleRange abs() const;
+    /**
+     * @return A new SampleRange with the exponential (e^x) of each sample.
+     */
+    [[nodiscard]] SampleRange exp() const;
 
     /*
      * Comparison operators
