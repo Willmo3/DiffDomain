@@ -158,7 +158,9 @@ MixedForm MixedForm::operator/(const MixedForm &w) const {
  * Unary wixed operations
  */
 MixedForm MixedForm::abs() const {
-    return { _affine_rep.abs(), _intersected_bounds.abs() };
+    // Use only the interval. Abs over affine forms repeatedly reduces the magnitude of the form.
+    // This can lead to (technically sound, under our semantics) but very small magnitude results.
+    return MixedForm(_intersected_bounds.abs());
 }
 MixedForm MixedForm::pow(uint32_t pow) const {
     // TODO: fix powers to be only unsigned.
