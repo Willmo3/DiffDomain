@@ -169,6 +169,9 @@ MixedForm MixedForm::pow(uint32_t pow) const {
 MixedForm MixedForm::exp() const {
     return { _affine_rep.exp(), _intersected_bounds.exp() };
 }
+MixedForm MixedForm::tanh() const {
+    return { _affine_rep.tanh(), _intersected_bounds.tanh() };
+}
 
 /*
  * Internal helpers

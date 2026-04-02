@@ -30,16 +30,20 @@ TEST(mixed_unop, test_mixed_pow_one_identity) {
 }
 
 TEST(mixed_unop, test_mixed_abs_positive_interval) {
-    // abs is the identity on a positive interval.
     auto form = MixedForm(Winterval(1, 5));
     EXPECT_EQ(form.abs().interval_bounds(), Winterval(1, 5));
 }
 
-TEST(mixed_unop, test_mixed_exp_with_print) {
-    // Create a mixed form and compute its exponential, then print the result
+TEST(mixed_unop, test_mixed_exp) {
     auto form = MixedForm(Winterval(1, 2));
     auto result = form.exp();
     ASSERT_NEAR(2.718282, result.min(), 1e-6);
     ASSERT_NEAR(7.389056, result.max(), 1e-6);
 }
 
+TEST(mixed_unop, test_mixed_tanh) {
+    auto form = MixedForm(Winterval(1, 2));
+    auto result = form.tanh();
+    ASSERT_NEAR(0.761594155956, result.min(), 1e-6);
+    ASSERT_NEAR(0.964027580076, result.max(), 1e-6);
+}

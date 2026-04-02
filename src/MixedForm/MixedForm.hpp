@@ -99,10 +99,9 @@ public:
      * Unary Wixed operations
      */
     MixedForm pow(uint32_t power) const;
-
     MixedForm abs() const;
-
     MixedForm exp() const;
+    MixedForm tanh() const;
 
     /*
      * Wixed-scalar operations
