@@ -84,13 +84,14 @@ SampleRange SampleRange::pow(uint32_t n) const {
     auto result = _samples.array().pow(static_cast<double>(n));
     return { result };
 }
-
 SampleRange SampleRange::abs() const {
     return { _samples.array().abs() };
 }
-
 SampleRange SampleRange::exp() const {
     return { _samples.array().exp() };
+}
+SampleRange SampleRange::tanh() const {
+    return { _samples.array().tanh() };
 }
 
 /*

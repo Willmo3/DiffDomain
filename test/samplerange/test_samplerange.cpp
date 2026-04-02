@@ -3,6 +3,7 @@
 // Created by will on 3/26/26.
 //
 #include <gtest/gtest.h>
+#include <cmath>
 #include "SampleRange/SampleRange.hpp"
 
 TEST(samplerange_scalar, multiply_by_zero) {
@@ -75,3 +76,12 @@ TEST(samplerange_misc, large_split) {
 
     ASSERT_EQ(splits.size(), 10);
 }
+
+TEST(samplerange_unary, tanh) {
+    SampleRange a(0.0, 1.0);
+    SampleRange result = a.tanh();
+
+    EXPECT_GT(result.min(), std::tanh(0.0));
+    EXPECT_LT(result.max(), std::tanh(1.0));
+}
+

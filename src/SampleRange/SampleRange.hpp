@@ -74,7 +74,7 @@ public:
     SampleRange operator/(double scalar) const;
 
     /*
-     * Unary operations
+     * Unary operations, piecewise applied
      */
 
     /**
@@ -82,14 +82,9 @@ public:
      * @return A new SampleRange with each element raised to power n.
      */
     [[nodiscard]] SampleRange pow(uint32_t n) const;
-    /**
-     * @return A new SampleRange with absolute value of each sample.
-     */
     [[nodiscard]] SampleRange abs() const;
-    /**
-     * @return A new SampleRange with the exponential (e^x) of each sample.
-     */
     [[nodiscard]] SampleRange exp() const;
+    [[nodiscard]] SampleRange tanh() const;
 
     /*
      * Comparison operators
