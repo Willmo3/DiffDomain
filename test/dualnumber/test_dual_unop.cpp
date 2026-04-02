@@ -72,3 +72,11 @@ TEST(dual_unop, exp) {
     EXPECT_NEAR(result.deriv_ref().max(), 1.0, 1e-6);
 }
 
+TEST(dual_unop, tanh) {
+    DualNumber x(Winterval(1, 3), Winterval(1, 1));
+    auto result = x.tanh().pow(2);
+    ASSERT_NEAR(result.primal_ref().min(), 0.580026, 1e-6);
+    ASSERT_NEAR(result.primal_ref().max(), 0.990134, 1e-6);
+    ASSERT_NEAR(result.deriv_ref().min(), 0.000275, 1e-6);
+    ASSERT_NEAR(result.deriv_ref().max(), 45.632857, 1e-6);
+}

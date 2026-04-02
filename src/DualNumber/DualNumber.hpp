@@ -163,6 +163,17 @@ public:
         auto exp_primal = _primal_value.exp();
         return { exp_primal, exp_primal * _deriv_value };
     }
+    /**
+     * @return A new dual number representing the result of tanh with chain rule applied.
+     * Derivative: sech^2(x) = 4e^(2x) / (e^(2x) + 1)^2
+     */
+    DualNumber tanh() const {
+        auto tanh_primal = _primal_value.tanh();
+        auto two_x = _primal_value * 2.0;
+        auto exp_two_x = two_x.exp();
+        auto sech_sq = (exp_two_x * 4.0) / (exp_two_x + 1.0).pow(2u);
+        return { tanh_primal, sech_sq * _deriv_value };
+    }
 
     /*
      * Compositional operations
