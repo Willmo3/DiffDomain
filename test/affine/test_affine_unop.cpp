@@ -67,3 +67,10 @@ TEST(affine_unop, exp) {
     ASSERT_NEAR(result.min(), -2.816363, 1e-5);
     ASSERT_NEAR(result.max(), 11.771873, 1e-5);
 }
+
+TEST(affine_unop, tanh) {
+    auto result = AffineForm(Winterval(0.1, 0.2));
+    result = result.tanh();
+    ASSERT_NEAR(result.min(), -0.046326, 1e-5);
+    ASSERT_NEAR(result.max(), 0.353398, 1e-5);
+}

@@ -238,6 +238,13 @@ AffineForm AffineForm::exp() const {
 
     return approximate_affine_form(alpha, zeta, delta);
 }
+AffineForm AffineForm::tanh() const {
+    auto two_x = clone() * 2.0;
+    auto exp_two_x = two_x.exp();
+    auto numerator = exp_two_x - 1.0;
+    auto denominator = exp_two_x + 1.0;
+    return numerator / denominator;
+}
 AffineForm AffineForm::union_with(const AffineForm &other) const {
     auto interval1 = this->to_interval();
     auto interval2 = other.to_interval();
@@ -442,8 +449,9 @@ AffineForm AffineForm::inv() const {
     if (interval.contains(0)) {
         // If interval contains 0, infinity will be in this interval, or the interval will just be [0, 0].
         // The blowup to infinity wipes away the dependence of the variables and adds a term of unlimited magnitude.
-        // We will hence construct a new affine form from the corresponding interval, since no dependencence can be preserved.
-        return AffineForm(this->to_interval());
+        auto retval = clone();
+        retval.add_noise_symbol(INFINITY);
+        return retval;
     }
 
     auto a = interval.abs().min();

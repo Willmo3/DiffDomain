@@ -103,6 +103,14 @@ public:
      */
     AffineForm exp() const;
 
+    /**
+     * @return An affine approximation of the hyperbolic tangent of this form.
+     * Computed as (e^(2x) - 1) / (e^(2x) + 1).
+     * Note that due to the extreme nonlinearity of this function (division by exponential), it will quickly diverge to -INF, INF.
+     * Recommend using as part of a reduced product.
+     */
+    AffineForm tanh() const;
+
     /*
      * Binary affine operations
      */
