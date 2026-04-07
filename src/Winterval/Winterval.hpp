@@ -29,7 +29,7 @@ public:
     /**
      * @param value Value to form an exact bound around.
      */
-    Winterval(double value);
+    explicit Winterval(double value);
     ~Winterval();
 
     /*

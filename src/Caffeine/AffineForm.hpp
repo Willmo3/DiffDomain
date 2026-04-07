@@ -56,7 +56,7 @@ public:
     /**
      * @param value Exact value to center affine form around, no noise symbols added.
      */
-    AffineForm(double value);
+    explicit AffineForm(double value);
     /**
      * @param center Real number center for affine form.
      * @param starting_coeffs error coefficients to prime the affine form with
@@ -107,7 +107,8 @@ public:
      * @return An affine approximation of the hyperbolic tangent of this form.
      * Computed as (e^(2x) - 1) / (e^(2x) + 1).
      * Note that due to the extreme nonlinearity of this function (division by exponential), it will quickly diverge to -INF, INF.
-     * Recommend using as part of a reduced product.
+     * Recommend using as part of a reduced product.:q
+     *
      */
     AffineForm tanh() const;
 
