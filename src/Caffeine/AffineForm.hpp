@@ -25,6 +25,7 @@
 // Author: Will Morris
 // Credit to https://github.com/ogay/libaffa for cpp implementation tips.
 // Credit to https://github.com/vanweric/Affapy for approximation strategies.
+// Credit to DeepZ for activation function approximations
 
 /**
  * Library for high performance affine form computations.

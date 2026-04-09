@@ -239,11 +239,23 @@ AffineForm AffineForm::exp() const {
     return approximate_affine_form(alpha, zeta, delta);
 }
 AffineForm AffineForm::tanh() const {
-    auto two_x = clone() * 2.0;
-    auto exp_two_x = two_x.exp();
-    auto numerator = exp_two_x - 1.0;
-    auto denominator = exp_two_x + 1.0;
-    return numerator / denominator;
+    // use approximation from DeepZ
+    auto interval = this->to_interval();
+    auto tanh_min = std::tanh(interval.min());
+    auto tanh_max = std::tanh(interval.max());
+
+    auto derivative_min = 1 - std::pow(tanh_min, 2);
+    auto derivative_max = 1 - std::pow(tanh_max, 2);
+
+    auto min_deviation = std::min(derivative_min, derivative_max);
+
+    auto offset = 0.5 * (tanh_max + tanh_min - min_deviation * (interval.max() + interval.min()));
+    auto noise_coeff = 0.5 * (tanh_max - tanh_min - min_deviation * (interval.max() - interval.min()));
+
+    auto result = clone();
+    result = result * min_deviation + offset;
+    result.add_noise_symbol(noise_coeff);
+    return result;
 }
 AffineForm AffineForm::union_with(const AffineForm &other) const {
     auto interval1 = this->to_interval();
