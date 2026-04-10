@@ -80,3 +80,12 @@ TEST(dual_unop, tanh) {
     ASSERT_NEAR(result.deriv_ref().min(), 0.01502783249528329, 1e-6);
     ASSERT_NEAR(result.deriv_ref().max(), 0.83579493009898309, 1e-6);
 }
+
+TEST(dual_unop, sigmoid) {
+    DualNumber x(Winterval(1, 3), Winterval(1, 1));
+    auto result = x.sigmoid();
+    ASSERT_NEAR(result.primal_ref().min(), 0.731059, 1e-6);
+    ASSERT_NEAR(result.primal_ref().max(), 0.952574, 1e-6);
+    ASSERT_NEAR(result.deriv_ref().min(), 0.034671, 1e-6);
+    ASSERT_NEAR(result.deriv_ref().max(), 0.256187, 1e-6);
+}

@@ -165,14 +165,22 @@ public:
     }
     /**
      * @return A new dual number representing the result of tanh with chain rule applied.
-     * Derivative: sech^2(x) = 4e^(2x) / (e^(2x) + 1)^2
+     * Derivative: 1 - tanh^2(f) * f'
      */
     DualNumber tanh() const {
         auto tanh_primal = _primal_value.tanh();
         auto tanh_derivative = tanh_primal.pow(2u) * -1 + 1;
-        return { tanh_primal, tanh_derivative };
+        return { tanh_primal, tanh_derivative * _deriv_value };
     }
-
+    /**
+     * @return A new dual number representing the result of sigmoid with chain rule applied.
+     * Derivative: sigmoid(f) * (1 - sigmoid(f)) * f'
+     */
+    DualNumber sigmoid() const {
+        auto sigmoid_primal = _primal_value.sigmoid();
+        auto sigmoid_derivative = sigmoid_primal * (sigmoid_primal * -1 + 1);
+        return { sigmoid_primal, sigmoid_derivative * _deriv_value };
+    }
 
     /*
      * Compositional operations
