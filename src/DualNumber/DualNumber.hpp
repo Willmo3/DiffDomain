@@ -181,6 +181,19 @@ public:
         auto sigmoid_derivative = sigmoid_primal * (sigmoid_primal * -1 + 1);
         return { sigmoid_primal, sigmoid_derivative * _deriv_value };
     }
+    /**
+     * @return A new dual number representing the result of ReLU with chain rule applied.
+     * Derivative: 0 if f < 0, 1 if f >= 0, or conservative bound for mixed sign intervals.
+     */
+    DualNumber relu() const {
+        if (_primal_value >= 0.0) {
+            return { _primal_value.relu(), _deriv_value };
+        } else if (_primal_value < 0.0) {
+            return { _primal_value.relu(), _deriv_value * 0.0 };
+        }
+        // Mixed sign (e.g. an interval spanning zero): conservative bound.
+        return { _primal_value.relu(), _deriv_value.abs() };
+    }
 
     /*
      * Compositional operations

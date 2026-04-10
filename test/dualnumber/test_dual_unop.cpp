@@ -89,3 +89,26 @@ TEST(dual_unop, sigmoid) {
     ASSERT_NEAR(result.deriv_ref().min(), 0.034671, 1e-6);
     ASSERT_NEAR(result.deriv_ref().max(), 0.256187, 1e-6);
 }
+
+TEST(dual_unop, relu) {
+    DualNumber x(Winterval(2, 3), Winterval(1, 1));
+    auto result = x.relu();
+    EXPECT_EQ(result.primal_ref().min(), 2.0);
+    EXPECT_EQ(result.primal_ref().max(), 3.0);
+    EXPECT_EQ(result.deriv_ref().min(), 1.0);
+    EXPECT_EQ(result.deriv_ref().max(), 1.0);
+
+    x = DualNumber(Winterval(-3, -1), Winterval(2, 2));
+    result = x.relu();
+    EXPECT_EQ(result.primal_ref().min(), 0.0);
+    EXPECT_EQ(result.primal_ref().max(), 0.0);
+    EXPECT_EQ(result.deriv_ref().min(), 0.0);
+    EXPECT_EQ(result.deriv_ref().max(), 0.0);
+
+    x = DualNumber(Winterval(-2, 3), Winterval(1, 2));
+    result = x.relu();
+    EXPECT_EQ(result.primal_ref().min(), 0.0);
+    EXPECT_EQ(result.primal_ref().max(), 3.0);
+    EXPECT_EQ(result.deriv_ref().min(), 1.0);
+    EXPECT_EQ(result.deriv_ref().max(), 2.0);
+}
