@@ -130,6 +130,13 @@ public:
     Winterval exp() const;
 
     /**
+     * Compute the rectified linear unit (RELU) of an interval.
+     * RELU(x) = max(0, x).
+     * @return A new interval whose value is max(0, x) where x is this interval.
+     */
+    Winterval relu() const;
+
+    /**
      * Compute the sigmoid of an interval. Using DeepZ form
      * Since sigmoid is monotonic, sufficient to apply to lower, upper bounds.
      * @return A new interval whose value is sigmoid(x) where x is this interval.

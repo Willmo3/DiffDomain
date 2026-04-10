@@ -200,6 +200,15 @@ Winterval Winterval::tanh() const {
 Winterval Winterval::exp() const {
     return { std::exp(_min), std::exp(_max) };
 }
+Winterval Winterval::relu() const {
+    if (_max <= 0) {
+        return { 0, 0 };
+    }
+    if (_min >= 0) {
+        return { _min, _max };
+    }
+    return { 0, _max };
+}
 Winterval Winterval::sigmoid() const {
     auto exp_min = std::exp(_min);
     auto exp_max = std::exp(_max);

@@ -88,6 +88,20 @@ TEST(winterval, exp) {
     ASSERT_NEAR(2.71828, w.max(), 1e-5);
 }
 
+TEST(winterval, relu) {
+    auto negative = Winterval(-2, -1).relu();
+    ASSERT_EQ(0, negative.min());
+    ASSERT_EQ(0, negative.max());
+
+    auto positive = Winterval(1, 3).relu();
+    ASSERT_EQ(1, positive.min());
+    ASSERT_EQ(3, positive.max());
+
+    auto mixed = Winterval(-2, 3).relu();
+    ASSERT_EQ(0, mixed.min());
+    ASSERT_EQ(3, mixed.max());
+}
+
 TEST(winterval, sigmoid) {
     auto w = Winterval(-1, 1).sigmoid();
     ASSERT_NEAR(0.2689, w.min(), 1e-4);
