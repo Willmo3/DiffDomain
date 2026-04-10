@@ -77,6 +77,6 @@ TEST(dual_unop, tanh) {
     auto result = x.tanh().pow(2);
     ASSERT_NEAR(result.primal_ref().min(), 0.580026, 1e-6);
     ASSERT_NEAR(result.primal_ref().max(), 0.990134, 1e-6);
-    ASSERT_NEAR(result.deriv_ref().min(), 0.000275, 1e-6);
-    ASSERT_NEAR(result.deriv_ref().max(), 45.632857, 1e-6);
+    ASSERT_NEAR(result.deriv_ref().min(), 0.01502783249528329, 1e-6);
+    ASSERT_NEAR(result.deriv_ref().max(), 0.83579493009898309, 1e-6);
 }

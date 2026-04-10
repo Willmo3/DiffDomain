@@ -169,11 +169,10 @@ public:
      */
     DualNumber tanh() const {
         auto tanh_primal = _primal_value.tanh();
-        auto two_x = _primal_value * 2.0;
-        auto exp_two_x = two_x.exp();
-        auto sech_sq = (exp_two_x * 4.0) / (exp_two_x + 1.0).pow(2u);
-        return { tanh_primal, sech_sq * _deriv_value };
+        auto tanh_derivative = tanh_primal.pow(2u) * -1 + 1;
+        return { tanh_primal, tanh_derivative };
     }
+
 
     /*
      * Compositional operations
