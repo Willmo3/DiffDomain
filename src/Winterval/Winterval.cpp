@@ -200,6 +200,12 @@ Winterval Winterval::tanh() const {
 Winterval Winterval::exp() const {
     return { std::exp(_min), std::exp(_max) };
 }
+Winterval Winterval::sigmoid() const {
+    // 1.0 / (1.0 + std::exp(-x));
+    auto lower_sigmoid = 1 / (1 + std::exp(_min));
+    auto upper_sigmoid = 1 / (1 + std::exp(_max));
+    return { lower_sigmoid, upper_sigmoid };
+}
 Winterval Winterval::pow(int power) const {
     if (power < 0) {
         throw std::invalid_argument("Attempted interval exponentiation with negative power!");

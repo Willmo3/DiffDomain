@@ -88,6 +88,12 @@ TEST(winterval, exp) {
     ASSERT_NEAR(2.71828, w.max(), 1e-5);
 }
 
+TEST(winterval, sigmoid) {
+    auto w = Winterval(-1, 1).sigmoid();
+    ASSERT_NEAR(0.2689, w.min(), 1e-4);
+    ASSERT_NEAR(0.7311, w.max(), 1e-4);
+}
+
 TEST(winterval, pow) {
     auto base = Winterval(-1, 4);
 

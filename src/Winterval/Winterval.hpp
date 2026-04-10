@@ -130,6 +130,13 @@ public:
     Winterval exp() const;
 
     /**
+     * Compute the sigmoid of an interval.
+     * Since sigmoid is monotonic, sufficient to apply to lower, upper bounds.
+     * @return A new interval whose value is sigmoid(x) where x is this interval.
+     */
+    Winterval sigmoid() const;
+
+    /**
      * Compute an interval to some constant power.
      * @param power Power to raise the interval to.
      * Note that for intervals, integer powers should always be nonnegative -- we represent as an int to comply with idiomatic Cpp.
