@@ -278,6 +278,27 @@ AffineForm AffineForm::sigmoid() const {
     result.add_noise_symbol(noise_coeff);
     return result;
 }
+AffineForm AffineForm::relu() const {
+    auto interval = this->to_interval();
+    if (interval.min() > 0) {
+        return clone();
+    }
+    if (interval.max() <= 0) {
+        return AffineForm(0);
+    }
+
+    // Intersections derived form DeepZ
+    auto upper = interval.max();
+    auto lower = interval.min();
+
+    auto intersection_point = upper / (upper - lower);
+    auto error_rad = -0.5 * upper * lower / (upper - lower);
+
+    auto result = clone();
+    result = result * intersection_point + error_rad;
+    result.add_noise_symbol(error_rad);
+    return result;
+}
 
 /*
  * Compositional operations

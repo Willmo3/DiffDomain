@@ -118,6 +118,13 @@ public:
      */
     AffineForm sigmoid() const;
 
+     /**
+      * @return An affine approximation of the rectified linear unit of this form.
+      * Computed using DeepZ synthesis from Taylor series
+      * https://proceedings.neurips.cc/paper_files/paper/2018/hash/f2f446980d8e971ef3da97af089481c3-Abstract.html
+      */
+    AffineForm relu() const;
+
     /*
      * Binary affine operations
      */
