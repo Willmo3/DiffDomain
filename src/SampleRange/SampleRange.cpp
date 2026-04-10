@@ -96,6 +96,9 @@ SampleRange SampleRange::tanh() const {
 SampleRange SampleRange::sigmoid() const {
     return { 1.0 / (1.0 + (-_samples.array()).exp()) };
 }
+SampleRange SampleRange::relu() const {
+    return { _samples.array().max(0.0) };
+}
 
 /*
  * Comparison operators

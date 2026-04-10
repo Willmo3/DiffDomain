@@ -92,3 +92,10 @@ TEST(samplerange_unary, sigmoid) {
     EXPECT_LT(result.max(), 0.74);
 }
 
+TEST(samplerange_unary, relu) {
+    SampleRange a(-1.0, 1.0);
+    SampleRange result = a.relu();
+
+    EXPECT_EQ(result.min(), 0.0);
+    EXPECT_NEAR(result.max(), 1.0, 0.1);
+}
