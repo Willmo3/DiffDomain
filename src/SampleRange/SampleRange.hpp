@@ -85,6 +85,7 @@ public:
     [[nodiscard]] SampleRange abs() const;
     [[nodiscard]] SampleRange exp() const;
     [[nodiscard]] SampleRange tanh() const;
+    [[nodiscard]] SampleRange sigmoid() const;
 
     /*
      * Comparison operators

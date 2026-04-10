@@ -84,4 +84,11 @@ TEST(samplerange_unary, tanh) {
     EXPECT_GT(result.min(), std::tanh(0.0));
     EXPECT_LT(result.max(), std::tanh(1.0));
 }
+TEST(samplerange_unary, sigmoid) {
+    SampleRange a(0.0, 1.0);
+    SampleRange result = a.sigmoid();
+
+    EXPECT_GT(result.min(), 0.5);
+    EXPECT_LT(result.max(), 0.74);
+}
 
