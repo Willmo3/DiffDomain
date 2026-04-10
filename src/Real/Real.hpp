@@ -40,6 +40,7 @@ public:
     Real exp() const;
     Real tanh() const;
     Real sigmoid() const;
+    Real relu() const;
     Real pow(uint32_t power) const;
     Real abs() const;
 

@@ -29,6 +29,7 @@ concept Numeric = requires(T a, uint32_t nat, double real, std::ostream &out) {
     { a.exp() }      -> std::convertible_to<T>;
     { a.tanh() }     -> std::convertible_to<T>;
     { a.sigmoid() }  -> std::convertible_to<T>;
+    { a.relu() }     -> std::convertible_to<T>;
 
     /*
      * Comparison operators

@@ -90,6 +90,9 @@ Real Real::tanh() const {
 Real Real::sigmoid() const {
     return { 1 / (1 + std::exp(-_value)) };
 }
+Real Real::relu() const {
+    return { std::max(0.0, _value) };
+}
 Real Real::pow(uint32_t power) const {
     return { std::pow(_value, power) };
 }
