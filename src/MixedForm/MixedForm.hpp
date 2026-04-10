@@ -103,6 +103,7 @@ public:
     MixedForm exp() const;
     MixedForm tanh() const;
     MixedForm sigmoid() const;
+    MixedForm relu() const;
 
     /*
      * Wixed-scalar operations

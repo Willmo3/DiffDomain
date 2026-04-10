@@ -175,6 +175,9 @@ MixedForm MixedForm::tanh() const {
 MixedForm MixedForm::sigmoid() const {
     return { _affine_rep.sigmoid(), _intersected_bounds.sigmoid() };
 }
+MixedForm MixedForm::relu() const {
+    return { _affine_rep.relu(), _intersected_bounds.relu() };
+}
 
 /*
  * Internal helpers

@@ -54,3 +54,10 @@ TEST(mixed_unop, test_mixed_sigmoid) {
     ASSERT_NEAR(0.731058578630, result.min(), 1e-6);
     ASSERT_NEAR(0.880797077977, result.max(), 1e-6);
 }
+
+TEST(mixed_unop, test_mixed_relu) {
+    auto form = MixedForm(Winterval(-2, 3));
+    auto result = form.relu();
+    EXPECT_EQ(result.min(), 0.0);
+    EXPECT_EQ(result.max(), 3.0);
+}
