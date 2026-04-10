@@ -130,7 +130,7 @@ public:
     Winterval exp() const;
 
     /**
-     * Compute the sigmoid of an interval.
+     * Compute the sigmoid of an interval. Using DeepZ form
      * Since sigmoid is monotonic, sufficient to apply to lower, upper bounds.
      * @return A new interval whose value is sigmoid(x) where x is this interval.
      */

@@ -201,9 +201,10 @@ Winterval Winterval::exp() const {
     return { std::exp(_min), std::exp(_max) };
 }
 Winterval Winterval::sigmoid() const {
-    // 1.0 / (1.0 + std::exp(-x));
-    auto lower_sigmoid = 1 / (1 + std::exp(_min));
-    auto upper_sigmoid = 1 / (1 + std::exp(_max));
+    auto exp_min = std::exp(_min);
+    auto exp_max = std::exp(_max);
+    auto lower_sigmoid = exp_min / (1 + exp_min);
+    auto upper_sigmoid = exp_max / (1 + exp_max);
     return { lower_sigmoid, upper_sigmoid };
 }
 Winterval Winterval::pow(int power) const {
