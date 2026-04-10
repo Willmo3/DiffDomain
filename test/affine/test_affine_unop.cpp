@@ -74,3 +74,13 @@ TEST(affine_unop, tanh) {
     ASSERT_NEAR(result.min(), 0.099668, 1e-5);
     ASSERT_NEAR(result.max(), 0.197375, 1e-5);
 }
+
+TEST(affine_unop, sigmoid) {
+    auto result = AffineForm(Winterval(0.1, 0.2)).sigmoid();
+    ASSERT_NEAR(result.min(), 0.524979, 1e-5);
+    ASSERT_NEAR(result.max(), 0.549834, 1e-5);
+
+    auto unit = AffineForm(Winterval(0.1, 0.1)).sigmoid();
+    ASSERT_NEAR(unit.min(), 0.524979, 1e-5);
+    ASSERT_NEAR(unit.max(), 0.524979, 1e-5);
+}

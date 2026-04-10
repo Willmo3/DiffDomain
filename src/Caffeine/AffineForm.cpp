@@ -257,6 +257,31 @@ AffineForm AffineForm::tanh() const {
     result.add_noise_symbol(noise_coeff);
     return result;
 }
+AffineForm AffineForm::sigmoid() const {
+    auto interval = this->to_interval();
+
+    auto exp_min = std::exp(interval.min());
+    auto exp_max = std::exp(interval.max());
+
+    auto sigmoid_min = exp_min / (1 + exp_min);
+    auto sigmoid_max = exp_max / (1 + exp_max);
+
+    auto derivative_min = exp_min / std::pow(1 + exp_min, 2);
+    auto derivative_max = exp_max / std::pow(1 + exp_max, 2);
+    auto min_deviation = std::min(derivative_min, derivative_max);
+
+    auto offset = 0.5 * (sigmoid_max + sigmoid_min - min_deviation * (interval.max() + interval.min()));
+    auto noise_coeff = 0.5 * (sigmoid_max - sigmoid_min - min_deviation * (interval.max() - interval.min()));
+
+    auto result = clone();
+    result = result * min_deviation + offset;
+    result.add_noise_symbol(noise_coeff);
+    return result;
+}
+
+/*
+ * Compositional operations
+ */
 AffineForm AffineForm::union_with(const AffineForm &other) const {
     auto interval1 = this->to_interval();
     auto interval2 = other.to_interval();

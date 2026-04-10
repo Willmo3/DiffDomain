@@ -106,12 +106,17 @@ public:
 
     /**
      * @return An affine approximation of the hyperbolic tangent of this form.
-     * Computed as (e^(2x) - 1) / (e^(2x) + 1).
-     * Note that due to the extreme nonlinearity of this function (division by exponential), it will quickly diverge to -INF, INF.
-     * Recommend using as part of a reduced product.:q
-     *
+     * Computed using DeepZ synthesis from Taylor series
+     * https://proceedings.neurips.cc/paper_files/paper/2018/hash/f2f446980d8e971ef3da97af089481c3-Abstract.html
      */
     AffineForm tanh() const;
+
+    /**
+     * @return An affine approximation of the sigmoid of this form.
+     * Computed using DeepZ synthesis from Taylor series
+     * https://proceedings.neurips.cc/paper_files/paper/2018/hash/f2f446980d8e971ef3da97af089481c3-Abstract.html
+     */
+    AffineForm sigmoid() const;
 
     /*
      * Binary affine operations
