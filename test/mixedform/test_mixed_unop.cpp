@@ -47,3 +47,10 @@ TEST(mixed_unop, test_mixed_tanh) {
     ASSERT_NEAR(0.761594155956, result.min(), 1e-6);
     ASSERT_NEAR(0.964027580076, result.max(), 1e-6);
 }
+
+TEST(mixed_unop, test_mixed_sigmoid) {
+    auto form = MixedForm(Winterval(1, 2));
+    auto result = form.sigmoid();
+    ASSERT_NEAR(0.731058578630, result.min(), 1e-6);
+    ASSERT_NEAR(0.880797077977, result.max(), 1e-6);
+}
