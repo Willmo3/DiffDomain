@@ -304,11 +304,23 @@ AffineForm AffineForm::relu() const {
  * Compositional operations
  */
 AffineForm AffineForm::union_with(const AffineForm &other) const {
-    auto interval1 = this->to_interval();
-    auto interval2 = other.to_interval();
-    auto union_interval = interval1.union_with(interval2);
-    // Notice the loss of dependence information here.
-    return AffineForm(union_interval);
+    // using join formula from Taylor1+ (https://link.springer.com/chapter/10.1007/978-3-642-02658-4_47)
+    auto result = clone();
+    auto interval_union = to_interval().union_with(other.to_interval());
+    result._center = interval_union.mid();
+
+    for (auto [symbol, coeff] : other._coefficients) {
+        if (!this->_coefficients.contains(symbol)) {
+            // Add missing error terms with other's magnitude
+           result._coefficients[symbol] = coeff;
+        } else if (this->_coefficients.contains(symbol)) {
+            // otherwise, union takes the min of the two.
+            result._coefficients[symbol] = std::min(std::abs(this->_coefficients.at(symbol)), std::abs(coeff));
+        }
+    }
+
+    result._coefficients[new_noise_symbol()] = interval_union.max() - result.center() - result.radius();
+    return result;
 }
 std::vector<AffineForm> AffineForm::split(uint32_t n_splits) const {
     if (n_splits == 0) {

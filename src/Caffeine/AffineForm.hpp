@@ -152,6 +152,8 @@ public:
      * @brief Perform a union operation. This converts each to interval bounds, rather than fitting a convex hull,
      * so it does not preserve affine relationships. (i.e. it allocates a new error symbol)
      *
+     * Note: using join operation of Taylor1+ (https://link.springer.com/chapter/10.1007/978-3-642-02658-4_47)
+     *
      * @param other other affine form to union with.
      * @return the union of the interval bounds of this affine form and the other.
      */
