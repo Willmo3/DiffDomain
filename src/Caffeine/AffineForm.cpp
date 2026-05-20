@@ -319,7 +319,11 @@ AffineForm AffineForm::union_with(const AffineForm &other) const {
         }
     }
 
-    result._coefficients[new_noise_symbol()] = interval_union.max() - result.center() - result.radius();
+    auto error = interval_union.max() - result.center() - result.radius();
+    if (error > 0) {
+        result._coefficients[new_noise_symbol()] = error;
+    }
+
     return result;
 }
 std::vector<AffineForm> AffineForm::split(uint32_t n_splits) const {
