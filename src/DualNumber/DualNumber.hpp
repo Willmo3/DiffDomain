@@ -145,6 +145,13 @@ public:
         return { _primal_value.pow(n), _primal_value.pow(n - 1) * static_cast<double>(n) * _deriv_value };
     }
     /**
+     * Applies power rule with exponent of 1/2. d/dx (sqrt(f)) = 1/2 f^(-1/2) * f'
+     * @return A new dual number representing the result of sqrt with chain rule applied.
+     */
+    DualNumber sqrt() const {
+        return { _primal_value.sqrt(), _deriv_value / (_primal_value.sqrt() * 2.0) };
+    }
+    /**
      * @return A new dual number representing the absolute value, d/dx(|f|) = sign(f) * f'.
      */
     DualNumber abs() const {

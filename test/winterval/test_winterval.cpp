@@ -68,8 +68,8 @@ TEST(winterval, div) {
     right = Winterval(0, 0);
     div = left / right;
 
-    ASSERT_EQ(0, div.min());
-    ASSERT_EQ(0, div.max());
+    ASSERT_TRUE(std::isnan(div.min()));
+    ASSERT_TRUE(std::isnan(div.max()));
 }
 
 TEST(winterval, tanh) {

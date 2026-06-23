@@ -68,10 +68,9 @@ Winterval Winterval::operator*(const Winterval &rhs) const {
 Winterval Winterval::operator/(const Winterval &rhs) const {
     std::vector<double> candidate_values;
 
-    // Edge case: [0,0] defines only the value 0 -- not one infinitesimal more.
-    // We return the interval 0, 0 in this case.
-    if (rhs._min == rhs._max && rhs._min == 0) {
-        return { 0, 0 };
+    // if point is exactly 0, must be NAN -- no 0.
+    if (rhs._min == 0 && rhs._max == 0) {
+        return {-NAN, NAN};
     }
 
     // First, check if 0 in interval.
