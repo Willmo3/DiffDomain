@@ -120,28 +120,28 @@ public:
      * Since tanh is monotonic, it is sufficient to apply it to the lower, upper bounds (i.e. optimal conditions on boundary)
      * @return A new interval whose value is the hyperbolic tangent of this interval.
      */
-    Winterval tanh() const;
+    [[nodiscard]] Winterval tanh() const;
 
     /**
      * Compute the exponential of an interval.
      * Since exp is monotonic, it is sufficient to apply it to the lower, upper bounds.
      * @return A new interval whose value is e^x where x is this interval.
      */
-    Winterval exp() const;
+    [[nodiscard]] Winterval exp() const;
 
     /**
      * Compute the rectified linear unit (RELU) of an interval.
      * RELU(x) = max(0, x).
      * @return A new interval whose value is max(0, x) where x is this interval.
      */
-    Winterval relu() const;
+    [[nodiscard]] Winterval relu() const;
 
     /**
      * Compute the sigmoid of an interval. Using DeepZ form
      * Since sigmoid is monotonic, sufficient to apply to lower, upper bounds.
      * @return A new interval whose value is sigmoid(x) where x is this interval.
      */
-    Winterval sigmoid() const;
+    [[nodiscard]] Winterval sigmoid() const;
 
     /**
      * Compute an interval to some constant power.
@@ -150,18 +150,18 @@ public:
      *
      * @return a new interval equal to this one raised to power
      */
-    Winterval pow(int power) const;
+    [[nodiscard]] Winterval pow(int power) const;
 
     /**
      * @return The absolute value of this interval.
      */
-    Winterval abs() const;
+    [[nodiscard]] Winterval abs() const;
 
     /**
      *
      * @return The square root of this interval, or NaN if negative included in interval.
      */
-    Winterval sqrt() const;
+    [[nodiscard]] Winterval sqrt() const;
 
     /**
      * @brief Inclusive bounds check.

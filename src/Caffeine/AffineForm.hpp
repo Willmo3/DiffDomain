@@ -91,45 +91,45 @@ public:
     /*
      * Unary operations
      */
-    AffineForm operator-() const;
-    AffineForm abs() const;
+    [[nodiscard]] AffineForm operator-() const;
+    [[nodiscard]] AffineForm abs() const;
 
     /**
      * @return The affine form multiplied by itself power times.
      */
-    AffineForm pow(uint32_t power) const;
+    [[nodiscard]] AffineForm pow(uint32_t power) const;
 
     /**
      * @return the square root of this affine form. NAN if negative included in range.
      * We use Affapy/libaffa procedure.
      */
-    AffineForm sqrt() const;
+    [[nodiscard]] AffineForm sqrt() const;
 
     /**
      * @return An affine approximation of the exponential of this form.
      */
-    AffineForm exp() const;
+    [[nodiscard]] AffineForm exp() const;
 
     /**
      * @return An affine approximation of the hyperbolic tangent of this form.
      * Computed using DeepZ synthesis from Taylor series
      * https://proceedings.neurips.cc/paper_files/paper/2018/hash/f2f446980d8e971ef3da97af089481c3-Abstract.html
      */
-    AffineForm tanh() const;
+    [[nodiscard]] AffineForm tanh() const;
 
     /**
      * @return An affine approximation of the sigmoid of this form.
      * Computed using DeepZ synthesis from Taylor series
      * https://proceedings.neurips.cc/paper_files/paper/2018/hash/f2f446980d8e971ef3da97af089481c3-Abstract.html
      */
-    AffineForm sigmoid() const;
+    [[nodiscard]] AffineForm sigmoid() const;
 
-     /**
-      * @return An affine approximation of the rectified linear unit of this form.
-      * Computed using DeepZ synthesis from Taylor series
-      * https://proceedings.neurips.cc/paper_files/paper/2018/hash/f2f446980d8e971ef3da97af089481c3-Abstract.html
-      */
-    AffineForm relu() const;
+    /**
+     * @return An affine approximation of the rectified linear unit of this form.
+     * Computed using DeepZ synthesis from Taylor series
+     * https://proceedings.neurips.cc/paper_files/paper/2018/hash/f2f446980d8e971ef3da97af089481c3-Abstract.html
+     */
+    [[nodiscard]] AffineForm relu() const;
 
     /*
      * Binary affine operations
@@ -137,19 +137,19 @@ public:
     /**
      * Additive union of error symbols.
      */
-    AffineForm operator+(const AffineForm &other) const;
+    [[nodiscard]] AffineForm operator+(const AffineForm &other) const;
     /**
      * Subtractive union of error symbols.
      */
-    AffineForm operator-(const AffineForm &other) const;
+    [[nodiscard]] AffineForm operator-(const AffineForm &other) const;
     /**
      * Outer product of real values with others' errors. Additional error symbol added to account for loss of precision.
      */
-    AffineForm operator*(const AffineForm &right) const;
+    [[nodiscard]] AffineForm operator*(const AffineForm &right) const;
     /**
      * Product of this affine form and the inverse of the rhs.
      */
-    AffineForm operator/(const AffineForm &right) const;
+    [[nodiscard]] AffineForm operator/(const AffineForm &right) const;
 
     /*
      * Compositional operations
@@ -163,13 +163,13 @@ public:
      * @param other other affine form to union with.
      * @return the union of the interval bounds of this affine form and the other.
      */
-    AffineForm union_with(const AffineForm &other) const;
+    [[nodiscard]] AffineForm union_with(const AffineForm &other) const;
     /**
      *
      * @param n_splits Number of sub-intervals to split this affine form into.
      * @return New affine forms from each of the split intervals.
      */
-    std::vector<AffineForm> split(uint32_t n_splits) const;
+    [[nodiscard]] std::vector<AffineForm> split(uint32_t n_splits) const;
 
     /*
      * Relational operations
@@ -210,10 +210,10 @@ public:
     /*
      * Scalar arithmetic operations
      */
-    AffineForm operator*(double other) const;
-    AffineForm operator+(double other) const;
-    AffineForm operator-(double other) const;
-    AffineForm operator/(double other) const;
+    [[nodiscard]] AffineForm operator*(double other) const;
+    [[nodiscard]] AffineForm operator+(double other) const;
+    [[nodiscard]] AffineForm operator-(double other) const;
+    [[nodiscard]] AffineForm operator/(double other) const;
 
     /*
      * Explicit modifiers

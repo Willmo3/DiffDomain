@@ -68,10 +68,10 @@ public:
     /*
      * SampleRange-scalar arithmetic
      */
-    SampleRange operator+(double scalar) const;
-    SampleRange operator-(double scalar) const;
-    SampleRange operator*(double scalar) const;
-    SampleRange operator/(double scalar) const;
+    [[nodiscard]] SampleRange operator+(double scalar) const;
+    [[nodiscard]] SampleRange operator-(double scalar) const;
+    [[nodiscard]] SampleRange operator*(double scalar) const;
+    [[nodiscard]] SampleRange operator/(double scalar) const;
 
     /*
      * Unary operations, piecewise applied

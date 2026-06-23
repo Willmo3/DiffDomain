@@ -76,14 +76,14 @@ public:
      * @return A copy of the primal value.
      * Note that this is shallow, and heap resources -- i.e. vector contents -- will be shared.
      */
-    T primal_value() {
+    [[nodiscard]] T primal_value() {
         return _primal_value;
     }
     /**
      * @return a deep copy of the derivative value.
      * Note that this is shallow, and heap resources -- i.e. vector contents -- will be shared.
      */
-    T deriv_value() {
+    [[nodiscard]] T deriv_value() {
         return _deriv_value;
     }
 
@@ -94,17 +94,17 @@ public:
      *   Multiplication       : product rule
      *   Division             : quotient rule
      */
-    DualNumber operator+(const DualNumber& rhs) const {
+    [[nodiscard]] DualNumber operator+(const DualNumber& rhs) const {
         return { _primal_value + rhs._primal_value, _deriv_value + rhs._deriv_value };
     }
-    DualNumber operator-(const DualNumber& rhs) const {
+    [[nodiscard]] DualNumber operator-(const DualNumber& rhs) const {
         return { _primal_value - rhs._primal_value, _deriv_value - rhs._deriv_value };
     }
-    DualNumber operator*(const DualNumber& rhs) const {
+    [[nodiscard]] DualNumber operator*(const DualNumber& rhs) const {
         return { _primal_value * rhs._primal_value,
                  _deriv_value * rhs._primal_value + _primal_value * rhs._deriv_value };
     }
-    DualNumber operator/(const DualNumber& rhs) const {
+    [[nodiscard]] DualNumber operator/(const DualNumber& rhs) const {
         return {
             _primal_value / rhs._primal_value,
             (_deriv_value * rhs._primal_value - _primal_value * rhs._deriv_value) / rhs._primal_value.pow(2u)
@@ -114,16 +114,16 @@ public:
     /*
      * DualNumber–scalar arithmetic
      */
-    DualNumber operator+(double scalar) const {
+    [[nodiscard]] DualNumber operator+(double scalar) const {
         return { _primal_value + scalar, _deriv_value };
     }
-    DualNumber operator-(double scalar) const {
+    [[nodiscard]] DualNumber operator-(double scalar) const {
         return { _primal_value - scalar, _deriv_value };
     }
-    DualNumber operator*(double scalar) const {
+    [[nodiscard]] DualNumber operator*(double scalar) const {
         return { _primal_value * scalar, _deriv_value * scalar };
     }
-    DualNumber operator/(double scalar) const {
+    [[nodiscard]] DualNumber operator/(double scalar) const {
         return { _primal_value / scalar, _deriv_value / scalar };
     }
 
@@ -136,7 +136,7 @@ public:
      * @param n Non-negative integer exponent.
      * @return A new dual number representing the result of power rule application
      */
-    DualNumber pow(uint32_t n) const {
+    [[nodiscard]] DualNumber pow(uint32_t n) const {
         if (n == 0) {
             // f^0 = 1 (constant), derivative = 0
             return DualNumber(_primal_value.pow(0), _deriv_value * 0.0);
@@ -148,13 +148,13 @@ public:
      * Applies power rule with exponent of 1/2. d/dx (sqrt(f)) = 1/2 f^(-1/2) * f'
      * @return A new dual number representing the result of sqrt with chain rule applied.
      */
-    DualNumber sqrt() const {
+    [[nodiscard]] DualNumber sqrt() const {
         return { _primal_value.sqrt(), _deriv_value / (_primal_value.sqrt() * 2.0) };
     }
     /**
      * @return A new dual number representing the absolute value, d/dx(|f|) = sign(f) * f'.
      */
-    DualNumber abs() const {
+    [[nodiscard]] DualNumber abs() const {
         if (_primal_value >= 0.0) {
             return { _primal_value.abs(), _deriv_value };
         } else if (_primal_value < 0.0) {
@@ -166,7 +166,7 @@ public:
     /**
      * @return A new dual number representing the result of exp with chain rule applied.
      */
-    DualNumber exp() const {
+    [[nodiscard]] DualNumber exp() const {
         auto exp_primal = _primal_value.exp();
         return { exp_primal, exp_primal * _deriv_value };
     }
@@ -174,7 +174,7 @@ public:
      * @return A new dual number representing the result of tanh with chain rule applied.
      * Derivative: 1 - tanh^2(f) * f'
      */
-    DualNumber tanh() const {
+    [[nodiscard]] DualNumber tanh() const {
         auto tanh_primal = _primal_value.tanh();
         auto tanh_derivative = tanh_primal.pow(2u) * -1 + 1;
         return { tanh_primal, tanh_derivative * _deriv_value };
@@ -183,7 +183,7 @@ public:
      * @return A new dual number representing the result of sigmoid with chain rule applied.
      * Derivative: sigmoid(f) * (1 - sigmoid(f)) * f'
      */
-    DualNumber sigmoid() const {
+    [[nodiscard]] DualNumber sigmoid() const {
         auto sigmoid_primal = _primal_value.sigmoid();
         auto sigmoid_derivative = sigmoid_primal * (sigmoid_primal * -1 + 1);
         return { sigmoid_primal, sigmoid_derivative * _deriv_value };
@@ -192,7 +192,7 @@ public:
      * @return A new dual number representing the result of ReLU with chain rule applied.
      * Derivative: 0 if f < 0, 1 if f >= 0, or conservative bound for mixed sign intervals.
      */
-    DualNumber relu() const {
+    [[nodiscard]] DualNumber relu() const {
         if (_primal_value >= 0.0) {
             return { _primal_value.relu(), _deriv_value };
         } else if (_primal_value < 0.0) {
@@ -210,7 +210,7 @@ public:
      * @param rhs Other DualNumber to union with.
      * @return A new DualNumber whose components are the respective unions.
      */
-    DualNumber union_with(const DualNumber &rhs) const {
+    [[nodiscard]] DualNumber union_with(const DualNumber &rhs) const {
         return { _primal_value.union_with(rhs._primal_value),
                  _deriv_value.union_with(rhs._deriv_value) };
     }
@@ -218,7 +218,7 @@ public:
      * @param n_splits Number of splits to produce.
      * @return Vector of n_splits DualNumbers.
      */
-    std::vector<DualNumber> split(uint32_t n_splits) const {
+    [[nodiscard]] std::vector<DualNumber> split(uint32_t n_splits) const {
         auto primal_splits = _primal_value.split(n_splits);
         auto deriv_splits  = _deriv_value.split(n_splits);
 

@@ -60,8 +60,8 @@ public:
     /*
      * Accessors
      */
-    const AffineForm &affine_rep() const;
-    const Winterval &interval_bounds() const;
+    [[nodiscard]] const AffineForm &affine_rep() const;
+    [[nodiscard]] const Winterval &interval_bounds() const;
     double min() const;
     double max() const;
     /**
@@ -72,10 +72,10 @@ public:
     /*
      * Wixed-Wixed operations
      */
-    MixedForm operator+(const MixedForm &w) const;
-    MixedForm operator-(const MixedForm &w) const;
-    MixedForm operator*(const MixedForm &w) const;
-    MixedForm operator/(const MixedForm &w) const;
+    [[nodiscard]] MixedForm operator+(const MixedForm &w) const;
+    [[nodiscard]] MixedForm operator-(const MixedForm &w) const;
+    [[nodiscard]] MixedForm operator*(const MixedForm &w) const;
+    [[nodiscard]] MixedForm operator/(const MixedForm &w) const;
 
     /*
      * Compositional operations
@@ -86,36 +86,36 @@ public:
      * Since affine noise symbols will be deleted by unions, we only preserve the interval representation
      * and construct a new affine form from the interval union.
      */
-    MixedForm union_with(const MixedForm &w) const;
+    [[nodiscard]] MixedForm union_with(const MixedForm &w) const;
 
     /**
      *
      * @param num_splits Number of splits to perform
      * @return A vector of new mixed forms over the intersected interval bounds of this form.
      */
-    std::vector<MixedForm> split(uint32_t num_splits) const;
+    [[nodiscard]] std::vector<MixedForm> split(uint32_t num_splits) const;
 
     /*
      * Unary Wixed operations
      */
-    MixedForm pow(uint32_t power) const;
+    [[nodiscard]] MixedForm pow(uint32_t power) const;
     /**
      * @return Union of sqrts of both sides -- may include NaN if numbers are negative
      */
-    MixedForm sqrt() const;
-    MixedForm abs() const;
-    MixedForm exp() const;
-    MixedForm tanh() const;
-    MixedForm sigmoid() const;
-    MixedForm relu() const;
+    [[nodiscard]] MixedForm sqrt() const;
+    [[nodiscard]] MixedForm abs() const;
+    [[nodiscard]] MixedForm exp() const;
+    [[nodiscard]] MixedForm tanh() const;
+    [[nodiscard]] MixedForm sigmoid() const;
+    [[nodiscard]] MixedForm relu() const;
 
     /*
      * Wixed-scalar operations
      */
-    MixedForm operator+(double scalar) const;
-    MixedForm operator-(double scalar) const;
-    MixedForm operator*(double scalar) const;
-    MixedForm operator/(double scalar) const;
+    [[nodiscard]] MixedForm operator+(double scalar) const;
+    [[nodiscard]] MixedForm operator-(double scalar) const;
+    [[nodiscard]] MixedForm operator*(double scalar) const;
+    [[nodiscard]] MixedForm operator/(double scalar) const;
 
     /*
      * Binary comparison operations
