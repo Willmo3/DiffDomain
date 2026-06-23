@@ -61,3 +61,63 @@ TEST(mixed_unop, test_mixed_relu) {
     EXPECT_EQ(result.min(), 0.0);
     EXPECT_EQ(result.max(), 3.0);
 }
+
+TEST(mixed_unop, test_mixed_sqrt) {
+    auto form = MixedForm(Winterval(1, 4));
+    auto result = form.sqrt();
+    ASSERT_NEAR(1.0, result.min(), 1e-6);
+    ASSERT_NEAR(2.0, result.max(), 1e-6);
+}
+
+TEST(mixed_unop, test_mixed_sqrt_point_interval) {
+    auto form = MixedForm(Winterval(4.0));
+    auto result = form.sqrt();
+    ASSERT_NEAR(result.min(), 2.0, 1e-5);
+    ASSERT_NEAR(result.max(), 2.0, 1e-5);
+}
+
+TEST(mixed_unop, test_mixed_sqrt_zero) {
+    auto form = MixedForm(Winterval(0.0));
+    auto result = form.sqrt();
+    ASSERT_NEAR(result.min(), 0.0, 1e-5);
+    ASSERT_NEAR(result.max(), 0.0, 1e-5);
+}
+
+TEST(mixed_unop, test_mixed_sqrt_1_to_4) {
+    auto form = MixedForm(Winterval(1.0, 4.0));
+    auto result = form.sqrt();
+    
+    // sqrt(1) = 1, sqrt(4) = 2
+    ASSERT_LE(result.min(), 1.0);
+    ASSERT_GE(result.max(), 2.0);
+}
+
+TEST(mixed_unop, test_mixed_sqrt_9_to_25) {
+    auto form = MixedForm(Winterval(9.0, 25.0));
+    auto result = form.sqrt();
+    
+    // sqrt(9) = 3, sqrt(25) = 5
+    ASSERT_LE(result.min(), 3.0);
+    ASSERT_GE(result.max(), 5.0);
+}
+
+TEST(mixed_unop, test_mixed_sqrt_negative_interval) {
+    auto form = MixedForm(Winterval(-4.0, -1.0));
+    auto result = form.sqrt();
+    
+    // Both min and max should be NaN for negative intervals
+    ASSERT_TRUE(std::isnan(result.min()));
+    ASSERT_TRUE(std::isnan(result.max()));
+}
+
+TEST(mixed_unop, test_mixed_sqrt_preserves_relationships) {
+    // sqrt should preserve order relationships for positive intervals
+    auto form1 = MixedForm(Winterval(1.0, 4.0));
+    auto form2 = MixedForm(Winterval(4.0, 9.0));
+    
+    auto result1 = form1.sqrt();
+    auto result2 = form2.sqrt();
+    
+    // result1 should still be less than result2
+    ASSERT_LT(result1.max(), result2.min());
+}

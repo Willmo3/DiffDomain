@@ -99,6 +99,10 @@ public:
      * Unary Wixed operations
      */
     MixedForm pow(uint32_t power) const;
+    /**
+     * @return Union of sqrts of both sides -- may include NaN if numbers are negative
+     */
+    MixedForm sqrt() const;
     MixedForm abs() const;
     MixedForm exp() const;
     MixedForm tanh() const;
