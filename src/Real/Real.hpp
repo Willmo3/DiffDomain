@@ -37,11 +37,12 @@ public:
     bool operator>=(const Real &right) const;
     bool operator>(const Real &right) const;
 
+    Real pow(uint32_t power) const;
+    Real sqrt() const;
     Real exp() const;
     Real tanh() const;
     Real sigmoid() const;
     Real relu() const;
-    Real pow(uint32_t power) const;
     Real abs() const;
 
     /*

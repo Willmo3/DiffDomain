@@ -81,6 +81,12 @@ std::ostream& operator<<(std::ostream &os, Real rhs) {
     return os;
 }
 
+Real Real::pow(uint32_t power) const {
+    return { std::pow(_value, power) };
+}
+Real Real::sqrt() const {
+    return { std::sqrt(_value) };
+}
 Real Real::exp() const {
     return { std::exp(_value) };
 }
@@ -92,9 +98,6 @@ Real Real::sigmoid() const {
 }
 Real Real::relu() const {
     return { std::max(0.0, _value) };
-}
-Real Real::pow(uint32_t power) const {
-    return { std::pow(_value, power) };
 }
 Real Real::abs() const {
     return { std::abs(_value) };
