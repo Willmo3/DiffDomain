@@ -25,6 +25,7 @@ concept Numeric = requires(T a, uint32_t nat, double real, std::ostream &out) {
      * Unary operations
      */
     { a.pow(nat) }   -> std::convertible_to<T>;
+    { a.sqrt() }     -> std::convertible_to<T>;
     { a.abs() }      -> std::convertible_to<T>;
     { a.exp() }      -> std::convertible_to<T>;
     { a.tanh() }     -> std::convertible_to<T>;
