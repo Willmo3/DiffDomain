@@ -114,7 +114,7 @@ public:
     /*
      * Other numeric functions.
      */
-    // TODO: as more flux functions are needed, add them here.
+    // TODO: as more activation functions are needed, add them here.
     /**
      * Compute the hyperbolic tangent of an interval.
      * Since tanh is monotonic, it is sufficient to apply it to the lower, upper bounds (i.e. optimal conditions on boundary)
@@ -156,6 +156,12 @@ public:
      * @return The absolute value of this interval.
      */
     Winterval abs() const;
+
+    /**
+     *
+     * @return The square root of this interval, or NaN if negative included in interval.
+     */
+    Winterval sqrt() const;
 
     /**
      * @brief Inclusive bounds check.

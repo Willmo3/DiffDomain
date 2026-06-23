@@ -324,3 +324,21 @@ TEST(winterval, contains_exact_boundaries) {
     ASSERT_FALSE(w.contains(0));
     ASSERT_FALSE(w.contains(6));
 }
+
+TEST(winterval, sqrt) {
+    auto w = Winterval(0, 4).sqrt();
+    ASSERT_EQ(0, w.min());
+    ASSERT_EQ(2, w.max());
+}
+
+TEST(winterval, sqrt_negative_interval) {
+    auto w = Winterval(-4, -1).sqrt();
+    ASSERT_TRUE(std::isnan(w.min()));
+    ASSERT_TRUE(std::isnan(w.max()));
+}
+
+TEST(winterval, sqrt_mixed_sign_interval) {
+    auto w = Winterval(-1, 4).sqrt();
+    ASSERT_TRUE(std::isnan(w.min()));
+    ASSERT_TRUE(std::isnan(w.max()));
+}

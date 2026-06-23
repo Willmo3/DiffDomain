@@ -251,6 +251,12 @@ Winterval Winterval::abs() const {
     // Otherwise, interval is strictly positive, abs is unit operation.
     return { _min, _max };
 }
+Winterval Winterval::sqrt() const {
+    if (_min < 0) {
+        return { NAN, NAN };
+    }
+    return { std::sqrt(_min), std::sqrt(_max) };
+}
 
 /*
  * Predicates
