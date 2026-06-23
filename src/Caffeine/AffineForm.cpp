@@ -214,6 +214,29 @@ AffineForm AffineForm::pow(uint32_t power) const {
 
     return result;
 }
+AffineForm AffineForm::sqrt() const {
+    auto interval = this->to_interval();
+    auto min = interval.min();
+    auto max = interval.max();
+
+    if (min < 0) {
+        // return NAN if negative value possible -- not defined for real semantics
+        return AffineForm(NAN);
+    }
+    if (min == 0 && max == 0) {
+        // special case: min, max both 0 -- we know value is 0.
+        return AffineForm(0);
+    }
+
+    auto t = std::floor(std::sqrt(min) + std::sqrt(max));
+    auto alpha = 1 / t;
+    auto dzeta = t / 8 + 0.5 * std::sqrt(min * max) / t;
+
+    auto rdelta = std::sqrt(max) - std::sqrt(min);
+    auto delta = rdelta * rdelta / std::floor(8 * t);
+
+    return approximate_affine_form(alpha, dzeta, delta);
+}
 AffineForm AffineForm::exp() const {
     if (radius() == INFINITY || radius() == NAN) {
         return AffineForm(Winterval(0, INFINITY));
@@ -447,10 +470,13 @@ double AffineForm::radius() const {
 }
 
 double AffineForm::min() const {
-    return to_interval().min();
+    return _center - radius();
 }
 double AffineForm::max() const {
-    return to_interval().max();
+    return _center + radius();
+}
+Winterval AffineForm::to_interval() const {
+    return {min(), max()};
 }
 
 double AffineForm::coeff_of(noise_symbol_t symbol) const {
@@ -458,22 +484,6 @@ double AffineForm::coeff_of(noise_symbol_t symbol) const {
         return _coefficients.at(symbol);
     }
     return NAN;
-}
-
-Winterval AffineForm::to_interval() const {
-    // Note: unable to do accumulation because of behavior with unordered maps.
-    const double rad = radius();
-
-    auto min = _center - rad;
-    auto max = _center + rad;
-    if (std::isnan(min)) {
-        min = INFINITY * -1;
-    }
-    if (std::isnan(max)) {
-        max = INFINITY;
-    }
-
-    return {min, max};
 }
 
 /*

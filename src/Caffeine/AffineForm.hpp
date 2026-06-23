@@ -100,6 +100,12 @@ public:
     AffineForm pow(uint32_t power) const;
 
     /**
+     * @return the square root of this affine form. NAN if negative included in range.
+     * We use Affapy/libaffa procedure.
+     */
+    AffineForm sqrt() const;
+
+    /**
      * @return An affine approximation of the exponential of this form.
      */
     AffineForm exp() const;

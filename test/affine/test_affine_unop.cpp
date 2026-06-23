@@ -5,6 +5,7 @@
 // NOTE: gtest keeps static state in a given test suite (i.e. affine).
 // Therefore, we switch noise symbols.
 
+#include <cmath>
 #include <gtest/gtest.h>
 
 #include "Caffeine/AffineForm.hpp"
@@ -85,4 +86,46 @@ TEST(affine_unop, relu) {
     auto result = AffineForm(Winterval(-100, 2)).relu();
     ASSERT_NEAR(result.min(), -1.960784, 1e-5);
     ASSERT_EQ(result.max(), 2);
+}
+
+TEST(affine_unop, sqrt_point_interval) {
+    auto result = AffineForm(Winterval(4.0)).sqrt();
+    ASSERT_NEAR(result.min(), 2, 1e-5);
+    ASSERT_NEAR(result.max(), 2, 1e-5);
+}
+
+TEST(affine_unop, sqrt_zero) {
+    auto result = AffineForm(Winterval(0.0)).sqrt();
+    ASSERT_NEAR(result.min(), 0.0, 1e-5);
+    ASSERT_NEAR(result.max(), 0.0, 1e-5);
+}
+
+TEST(affine_unop, sqrt_small_positive_interval) {
+    auto result = AffineForm(Winterval(1.0, 4.0)).sqrt();
+    ASSERT_NEAR(result.center(), 1.5, 0.1);
+    ASSERT_GT(result.radius(), 0.0);
+}
+
+TEST(affine_unop, sqrt_soundness_1_to_4) {
+    auto result = AffineForm(Winterval(1.0, 4.0)).sqrt();
+    ASSERT_LE(result.min(), std::sqrt(1.0));
+    ASSERT_GE(result.max(), std::sqrt(4.0));
+}
+
+TEST(affine_unop, sqrt_soundness_9_to_25) {
+    auto result = AffineForm(Winterval(9.0, 25.0)).sqrt();
+    ASSERT_LE(result.min(), 3.0);
+    ASSERT_GE(result.max(), 5.0);
+}
+
+TEST(affine_unop, sqrt_soundness_0_to_1) {
+    auto result = AffineForm(Winterval(0, 1.0)).sqrt();
+    ASSERT_LE(result.min(), 0.0);
+    ASSERT_GE(result.max(), 1.0);
+}
+
+TEST(affine_unop, sqrt_negative_interval) {
+    auto result = AffineForm(Winterval(-4.0, -1.0)).sqrt();
+    ASSERT_TRUE(std::isnan(result.min()));
+    ASSERT_TRUE(std::isnan(result.max()));
 }
