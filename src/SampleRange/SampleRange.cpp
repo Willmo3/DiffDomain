@@ -84,6 +84,9 @@ SampleRange SampleRange::pow(uint32_t n) const {
     auto result = _samples.array().pow(static_cast<double>(n));
     return { result };
 }
+SampleRange SampleRange::sqrt() const {
+    return { _samples.array().sqrt() };
+}
 SampleRange SampleRange::abs() const {
     return { _samples.array().abs() };
 }

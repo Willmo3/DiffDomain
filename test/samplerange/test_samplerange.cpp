@@ -99,3 +99,34 @@ TEST(samplerange_unary, relu) {
     EXPECT_EQ(result.min(), 0.0);
     EXPECT_NEAR(result.max(), 1.0, 0.1);
 }
+TEST(samplerange_unary, sqrt) {
+    SampleRange a(0.0, 1.0);
+    SampleRange result = a.sqrt();
+
+    EXPECT_NEAR(result.min(), 0.0, 0.1);
+    EXPECT_NEAR(result.max(), 1.0, 0.1);
+}
+
+TEST(samplerange_unary, sqrt_large_values) {
+    SampleRange a(9.0, 25.0);
+    SampleRange result = a.sqrt();
+
+    EXPECT_NEAR(result.min(), 3.0, 0.1);
+    EXPECT_NEAR(result.max(), 5.0, 0.1);
+}
+
+TEST(samplerange_unary, sqrt_negative_produces_nan) {
+    SampleRange a(-4.0, -1.0);
+    SampleRange result = a.sqrt();
+
+    EXPECT_TRUE(std::isnan(result.min()));
+    EXPECT_TRUE(std::isnan(result.max()));
+}
+
+TEST(samplerange_unary, sqrt_mixed_sign) {
+    SampleRange a(-1.0, 4.0);
+    SampleRange result = a.sqrt();
+
+    // Mixed sign interval: negative values produce NaN, positive produce valid sqrt
+    EXPECT_TRUE(std::isnan(result.min()) || result.min() >= 0.0);
+}

@@ -82,11 +82,16 @@ public:
      * @return A new SampleRange with each element raised to power n.
      */
     [[nodiscard]] SampleRange pow(uint32_t n) const;
+    /**
+     * @return A new SampleRange with each element sqrted. Negative elements will become NaN
+     */
+    [[nodiscard]] SampleRange sqrt() const;
     [[nodiscard]] SampleRange abs() const;
     [[nodiscard]] SampleRange exp() const;
     [[nodiscard]] SampleRange tanh() const;
     [[nodiscard]] SampleRange sigmoid() const;
     [[nodiscard]] SampleRange relu() const;
+
 
     /*
      * Comparison operators
