@@ -186,6 +186,12 @@ MixedForm MixedForm::relu() const {
  * Internal helpers
  */
 Winterval MixedForm::interval_intersection(const AffineForm &a, const Winterval &b) {
+    // Affine division is undefined for some problems, can propage nan.
+    // in this case, only interval bound!
+    if (std::isnan(a.min()) || std::isnan(a.max())) {
+        return {b.min(), b.max()};
+    }
+    
     auto min_intersect = std::max(a.to_interval().min(), b.min());
     auto max_intersect = std::min(a.to_interval().max(), b.max());
 
