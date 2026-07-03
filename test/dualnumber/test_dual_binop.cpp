@@ -6,6 +6,7 @@
 
 #include "DualNumber/DualNumber.hpp"
 #include "Winterval/Winterval.hpp"
+#include "MixedForm/MixedForm.hpp"
 
 // Helpers:
 //   x  – the independent variable at x = 3, dx/dx = 1
@@ -43,6 +44,22 @@ TEST(dual_binop, multiplication_product_rule_both_variable) {
     // x * x:  (x * x)' = 1*3 + 3*1 = 6  (i.e. d/dx(x^2) = 2x at x=3)
     auto x = makeX();
     EXPECT_EQ(x * x, DualNumber(Winterval(9, 9), Winterval(6, 6)));
+}
+
+TEST(dual_binop, multiplication_mixed_form) {
+    // Two DualNumbers over MixedForm, exercising the synthesized product-rule transformer.
+    DualNumber real1(Winterval(2.2, 4), Winterval(1, 1));
+    DualNumber real2(Winterval(1, 3), Winterval(-1, 1.1));
+    std::cout << real1 * real2 * real1 * real2 * real1 / real2 << std::endl;
+
+
+    //   x: primal [2, 4], deriv [1, 1]
+    //   y: primal [1, 3], deriv [0, 0]
+    DualNumber x(MixedForm(Winterval(2.2, 4)), MixedForm(Winterval(1, 1)));
+    DualNumber y(MixedForm(Winterval(1, 3)), MixedForm(Winterval(-1, 1.1)));
+
+    auto result = x * y * x * y * x / y;
+    std::cout << result << std::endl;
 }
 
 // ── Division ──────────────────────────────────────────────────────────────────

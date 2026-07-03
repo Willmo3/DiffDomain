@@ -5,12 +5,16 @@
 #ifndef DIFFDOMAIN_DUALNUMBER_H
 #define DIFFDOMAIN_DUALNUMBER_H
 
+#define USE_SYNTHESIZED_ZONOS
+
 #include <cstdint>
 #include <ostream>
 #include <vector>
 
 #include "cereal/cereal.hpp"
 #include "Numeric.hpp"
+#include "Eigen/Dense"
+#include "shared/polynomial/regression.hpp"
 
 /**
  * Forward-mode automatic differentiation via dual numbers.
@@ -164,7 +168,7 @@ public:
         return { _primal_value.abs(), _deriv_value.abs() };
     }
     /**
-     * @return A new dual number representing the result of exp with chain rule applied.
+     * @return A new dual number representing the result of exp with chain rule appconstlied.
      */
     [[nodiscard]] DualNumber exp() const {
         auto exp_primal = _primal_value.exp();
@@ -292,6 +296,73 @@ private:
     T _primal_value;
     T _deriv_value;
 };
+
+#ifdef USE_SYNTHESIZED_ZONOS
+#include "MixedForm/MixedForm.hpp"
+
+/**
+ * Synthesized abstract transformer for autodiff of product rule.
+ * We will use standard operations for the primal, but abstract the derivative.
+ */
+template<>
+[[nodiscard]] inline DualNumber<MixedForm> DualNumber<MixedForm>::operator*(const DualNumber&rhs) const {
+    constexpr uint32_t regression_number = 5u;
+
+    auto primal_1_range = Eigen::VectorXd::LinSpaced(regression_number, _primal_value.min(), _primal_value.max());
+    auto primal_2_range = Eigen::VectorXd::LinSpaced(regression_number, rhs._primal_value.min(), rhs._primal_value.max());
+    auto deriv_1_range = Eigen::VectorXd::LinSpaced(regression_number, _deriv_value.min(), _deriv_value.max());
+    auto deriv_2_range = Eigen::VectorXd::LinSpaced(regression_number, rhs._deriv_value.min(), rhs._deriv_value.max());
+
+    auto product = cartesian_product(primal_1_range, primal_2_range, deriv_1_range, deriv_2_range);
+    // apply product rule to all values.
+    // f * g' + g * f'
+    // where f = primal_1_range, g = primal_2_range, f' = deriv_1_range, g' = deriv_2_range
+    auto sampled_derivatives = product.col(0).array() * product.col(3).array() + product.col(1).array() * product.col(2).array();
+
+    auto fit = regress(product, sampled_derivatives);
+    auto intercept = fit(0);
+    auto c1 = fit(1);
+    auto c2 = fit(2);
+    auto c3 = fit(3);
+    auto c4 = fit(4);
+
+    // compute maximum possible deviation.
+    auto corners = get_corners(_primal_value.interval_bounds(), rhs._primal_value.interval_bounds(), _deriv_value.interval_bounds(), rhs._deriv_value.interval_bounds());
+    auto product_rule_on_corners = corners.col(0).array() * corners.col(3).array() + corners.col(1).array() * corners.col(2).array();
+
+    auto evaluation = c1 * corners.col(0).array()
+                                    + c2 * corners.col(1).array()
+                                    + c3 * corners.col(2).array()
+                                    + c4 * corners.col(3).array()
+                                    + intercept;
+
+    auto max_deviation = (product_rule_on_corners - evaluation).cwiseAbs().maxCoeff();
+    auto affine_result = _primal_value.affine_rep() * c1 + rhs._primal_value.affine_rep() * c2 + _deriv_value.affine_rep() * c3 + rhs._deriv_value.affine_rep() * c4 + intercept;
+    affine_result.add_noise_symbol(max_deviation);
+
+    auto max_product_rule = product_rule_on_corners.maxCoeff();
+    auto min_product_rule = product_rule_on_corners.minCoeff();
+
+    auto derivative = MixedForm(affine_result, Winterval(min_product_rule, max_product_rule));
+
+    return {
+        _primal_value * rhs._primal_value,
+        derivative
+    };
+}
+
+/**
+ * Synthesized abstract transformer for autodiff of quotient rule.
+ */
+template<>
+[[nodiscard]] inline DualNumber<MixedForm> DualNumber<MixedForm>::operator/(const DualNumber<MixedForm> &rhs) const {
+    return {
+        _primal_value / rhs._primal_value,
+        (_deriv_value * rhs._primal_value - _primal_value * rhs._deriv_value) / rhs._primal_value.pow(2u)
+    };
+}
+
+#endif
 
 #endif //DIFFDOMAIN_DUALNUMBER_H
 
