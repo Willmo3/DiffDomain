@@ -4,12 +4,10 @@
 #include "regression.hpp"
 
 Eigen::VectorXd regress(Eigen::MatrixXd& xmat, const Eigen::VectorXd& yvec) {
-    Eigen::MatrixXd xintercept(xmat.rows(), xmat.cols() + 1);
-    xintercept << Eigen::MatrixXd::Ones(xmat.rows(), 1), xmat;
-    if (((xintercept.transpose() * xintercept).inverse() * xintercept.transpose() * yvec).hasNaN()) {
-        std::cout << "NaN detected in regression calculation" << std::endl;
-    }
-    return (xintercept.transpose() * xintercept).inverse() * xintercept.transpose() * yvec;
+    Eigen::MatrixXd A(xmat.rows(), xmat.cols() + 1);
+    A.col(0) = Eigen::VectorXd::Ones(xmat.rows());
+    A.block(0, 1, xmat.rows(), xmat.cols()) = xmat;
+    return A.colPivHouseholderQr().solve(yvec);
 }
 
 Eigen::MatrixXd cartesian_product(const Eigen::VectorXd& xvec, const Eigen::VectorXd& yvec) {
