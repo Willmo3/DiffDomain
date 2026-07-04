@@ -16,7 +16,7 @@
 #include "cereal/cereal.hpp"
 #include "Numeric.hpp"
 #include "Eigen/Dense"
-#include "shared/polynomial/regression.hpp"
+#include "../shared/polynomial/regression.hpp"
 
 /**
  * Forward-mode automatic differentiation via dual numbers.
