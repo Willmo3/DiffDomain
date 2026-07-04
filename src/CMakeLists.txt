@@ -8,7 +8,7 @@ add_subdirectory(SampleRange)
 # add_library(real Real/Real.cpp)
 
 # Uncomment for unified domain library
-add_library(polynomial shared/polynomial/regression.cpp)
+add_library(polynomial shared/polynomial/regression.cpp shared/polynomial/rootfinding.cpp)
 add_library(domains Real/Real.cpp)
 target_link_libraries(domains winterval caffeine mixedform samplerange polynomial)
 

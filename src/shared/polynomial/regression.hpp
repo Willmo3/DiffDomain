@@ -36,6 +36,7 @@ Eigen::MatrixXd cartesian_product(const Eigen::VectorXd &xvec, const Eigen::Vect
 Eigen::MatrixXd cartesian_product(const Eigen::VectorXd &xvec, const Eigen::VectorXd &yvec, const Eigen::VectorXd &zvec, const Eigen::VectorXd &wvec);
 /**
  *
+ * SVD-regression -- more robust against repeated values.
  * @param xmat Matrix of values to regress over. Each row is a different input dimension.
  * @param yvec Vector of output values to regress against. Each row is a different input dimension.
  * @return The coefficients for the regression, in the form of a vector. The first value is the intercept, and the rest are the coefficients for each input dimension, in order.
