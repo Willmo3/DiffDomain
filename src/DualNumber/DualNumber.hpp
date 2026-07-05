@@ -16,7 +16,8 @@
 #include "cereal/cereal.hpp"
 #include "Numeric.hpp"
 #include "Eigen/Dense"
-#include "../shared/polynomial/regression.hpp"
+#include "polynomial/regression.hpp"
+#include "polynomial/rootfinding.hpp"
 
 /**
  * Forward-mode automatic differentiation via dual numbers.
@@ -301,7 +302,6 @@ private:
 
 #ifdef USE_SYNTHESIZED_ZONOS
 #include "MixedForm/MixedForm.hpp"
-#include "shared/polynomial/rootfinding.hpp"
 
 // synthesized abstract transformers for autodiff derived from Pasado
 // https://dl.acm.org/doi/pdf/10.1145/3622867
