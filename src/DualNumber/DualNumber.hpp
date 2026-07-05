@@ -15,9 +15,7 @@
 
 #include "cereal/cereal.hpp"
 #include "Numeric.hpp"
-#include "Eigen/Dense"
-#include "polynomial/regression.hpp"
-#include "polynomial/rootfinding.hpp"
+#include "polylib/polylib.hpp"
 
 /**
  * Forward-mode automatic differentiation via dual numbers.
@@ -303,6 +301,18 @@ private:
 #ifdef USE_SYNTHESIZED_ZONOS
 #include "MixedForm/MixedForm.hpp"
 
+inline Eigen::MatrixXd get_corners(const Winterval &bounds1, const Winterval &bounds2, const Winterval &bounds3, const Winterval &bounds4) {
+    auto x1 = Eigen::VectorXd(2);
+    auto x2 = Eigen::VectorXd(2);
+    auto x3 = Eigen::VectorXd(2);
+    auto x4 = Eigen::VectorXd(2);
+    x1 << bounds1.min(), bounds1.max();
+    x2 << bounds2.min(), bounds2.max();
+    x3 << bounds3.min(), bounds3.max();
+    x4 << bounds4.min(), bounds4.max();
+    return cartesian_product(x1, x2, x3, x4);
+}
+
 // synthesized abstract transformers for autodiff derived from Pasado
 // https://dl.acm.org/doi/pdf/10.1145/3622867
 
@@ -387,7 +397,7 @@ template<>
     auto sampled_derivatives = product_rule(f, g, f_prime, g_prime);
     // auto sampled_derivatives = product.col(0).array() * product.col(3).array() + product.col(1).array() * product.col(2).array();
 
-    auto fit = regress(xys, sampled_derivatives);
+    auto fit = regress_svd(xys, sampled_derivatives);
     auto intercept = fit(0);
     auto c1 = fit(1);
     auto c2 = fit(2);
@@ -447,7 +457,7 @@ template<>
     auto sampled_derivatives = quotient_rule(f, g, f_prime, g_prime);
 
     // Synthesize a well-formed linear approximation of the quotient rule output.
-    auto fit = regress(xys, sampled_derivatives);
+    auto fit = regress_svd(xys, sampled_derivatives);
     auto intercept = fit(0);
     auto c1 = fit(1);
     auto c2 = fit(2);

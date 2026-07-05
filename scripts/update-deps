@@ -22,6 +22,11 @@ fi
 
 curl -LOf "https://github.com/USCiLab/cereal/archive/v1.3.2.tar.gz" && tar -xf "v1.3.2.tar.gz" && mv "cereal-1.3.2/include/cereal/" "." && rm -r cereal-1.3.2 v1.3.2.tar.gz
 
+if [ -d 'Polylib' ]; then 
+  rm -r 'Polylib'
+fi
+curl -LOf 'https://github.com/Willmo3/Polylib/raw/refs/heads/main/release/polylib-release.tar.gz'
+tar -xzf 'polylib-release.tar.gz' && rm 'polylib-release.tar.gz'
 
 if [[ -d "Eigen" ]]; then
   rm -r "Eigen"
