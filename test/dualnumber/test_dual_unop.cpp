@@ -3,11 +3,13 @@
 //
 
 #include <cmath>
+#include <iostream>
 #include <gtest/gtest.h>
 
 #include "DualNumber/DualNumber.hpp"
 #include "Real/Real.hpp"
 #include "Winterval/Winterval.hpp"
+#include "MixedForm/MixedForm.hpp"
 
 // x = 3, dx/dx = 1  (the independent variable)
 static DualNumber<Winterval> makeX() { return { Winterval(3, 3), Winterval(1, 1) }; }
@@ -80,6 +82,21 @@ TEST(dual_unop, tanh) {
     ASSERT_NEAR(result.primal_ref().max(), 0.990134, 1e-6);
     ASSERT_NEAR(result.deriv_ref().min(), 0.01502783249528329, 1e-6);
     ASSERT_NEAR(result.deriv_ref().max(), 0.83579493009898309, 1e-6);
+}
+
+TEST(dual_unop, tanh_mixedform_synth_print) {
+
+    DualNumber x_interval(Winterval(1, 3), Winterval(1, 1));
+    auto interval_result = x_interval.tanh().tanh().tanh();
+    // std::cout << "Winterval tanh: " << interval_result << std::endl;
+
+    DualNumber x_affine(AffineForm(Winterval(1, 3)), AffineForm(Winterval(1, 1)));
+    auto affine_result = x_affine.tanh().tanh().tanh();
+    // std::cout << "AffineForm tanh: " << affine_result << std::endl;
+
+    DualNumber x_mixed(MixedForm(Winterval(1, 3)), MixedForm(Winterval(1, 1)));
+    auto mixed_result = x_mixed.tanh().tanh().tanh();
+    // std::cout << "MixedForm tanh: " << mixed_result << std::endl;
 }
 
 TEST(dual_unop, sigmoid) {
