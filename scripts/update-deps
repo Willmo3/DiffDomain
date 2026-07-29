@@ -5,8 +5,8 @@ echo "Installing and updating winterval project dependencies"
 cd ..
 
 parentname="$(basename "$(pwd)")"
-if [ $parentname != "DiffDomain" ] && [ $parentname != "diffdaomain" ]; then
-  echo "Attempted setup from wrong directory -- move to DiffDomain/scripts!"
+if [ $parentname != "DiffDomain" ] && [ $parentname != "diffdomain" ] && [ $parentname != "workspace" ]; then
+  echo "Attempted setup from wrong directory -- move to DiffDomain/scripts or docker root!"
   exit 1
 fi
 

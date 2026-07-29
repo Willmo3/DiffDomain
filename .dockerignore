@@ -1,0 +1,16 @@
+build/
+cmake-build-debug-system/
+out/
+
+lib/cereal
+lib/Eigen
+lib/polylib
+
+release/DiffDomain
+
+.idea/
+.git/
+
+*.o
+*.a
+*.so

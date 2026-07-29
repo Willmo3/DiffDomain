@@ -9,7 +9,8 @@ It is codesigned with the PDEnclose project, but can be used externally.
 * eigen vector library
 
 ## Design
-DiffDomain includes five domains:
+DiffDomain includes six domains:
+* Real: wrapper around double-precision floats
 * Winterval: standard interval arithmetic
 * Caffeine: affine interval arithmetic
 * MixedForm: affine-interval reduced product
@@ -19,6 +20,9 @@ DiffDomain includes five domains:
 These domains override operations defined in the Numeric concept. 
 
 ## Using
+
+### Docker
+We provide a dockerfile to install dependencies on a Fedora 40 image. This is helpful for Mac and Windows users who may not have glibc, which provides OpenMP and getopt. 
 
 ### Building
 We've tested building with CMAKE >= 3.5 and Unix makefiles. The libraries should compile with `gcc` or `clang`.
