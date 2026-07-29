@@ -24,6 +24,10 @@ These domains override operations defined in the Numeric concept.
 ### Docker
 We provide a dockerfile to install dependencies on a Fedora 40 image. This is helpful for Mac and Windows users who may not have glibc, which provides OpenMP and getopt. 
 
+The Docker environment can be created by navigating to the project root and executing the following commands:
+* `docker build -t diffdomain .`
+* `docker run -it --rm diffdomain`
+
 ### Building
 We've tested building with CMAKE >= 3.5 and Unix makefiles. The libraries should compile with `gcc` or `clang`.
 

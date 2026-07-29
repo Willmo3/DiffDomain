@@ -10,7 +10,6 @@ FROM fedora:40
 RUN dnf install -y \
     gcc \
     gcc-c++ \
-    clang \
     cmake \
     make \
     git \
