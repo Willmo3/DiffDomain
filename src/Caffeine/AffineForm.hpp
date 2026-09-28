@@ -7,6 +7,7 @@
 
 #ifndef CAFFEINE_AFFINEFORM_H
 #define CAFFEINE_AFFINEFORM_H
+#include <atomic>
 #include <cstdint>
 #include <unordered_map>
 #include <vector>
@@ -229,7 +230,8 @@ private:
     /*
      * Noise symbol handling
      */
-    static noise_symbol_t max_noise_symbol;
+    // Atomic so symbols stay unique across threads, whether or not this file is built with OpenMP.
+    static std::atomic<noise_symbol_t> max_noise_symbol;
 
     static noise_symbol_t new_noise_symbol();
 

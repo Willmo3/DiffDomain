@@ -30,8 +30,6 @@ MixedForm::MixedForm() :
     _affine_rep(AffineForm()),
     _intersected_bounds(Winterval()) {}
 
-MixedForm::~MixedForm() = default;
-
 MixedForm MixedForm::union_with(const MixedForm &w) const {
     // Loses noise symbol dependence, but this would happen anyways.
     return MixedForm(interval_bounds().union_with(w.interval_bounds()));

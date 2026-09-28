@@ -52,11 +52,6 @@ public:
      */
     MixedForm();
 
-    /**
-     * Destructor
-     */
-    ~MixedForm();
-
     /*
      * Accessors
      */
