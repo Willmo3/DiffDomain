@@ -15,10 +15,11 @@ inline double quotient_rule(double f, double g, double f_prime, double g_prime) 
 }
 // Using Pasado formula, check if the root is valid
 inline bool valid_root(const Eigen::ArrayXd &root, double g_min, double g_max) {
-    return (root[1] != 0)
+    // root = (f, g, f', g'); critical g = 2 f g' / f'
+    return (root[2] != 0)
         && (root[0] * root[3] != 0)
-        && (2 * root[0] * root[3] / root[1] >= g_min)
-        && (2 * root[0] * root[3] / root[1] <= g_max);
+        && (2 * root[0] * root[3] / root[2] >= g_min)
+        && (2 * root[0] * root[3] / root[2] <= g_max);
 }
 
 /**
@@ -121,7 +122,7 @@ inline AffineForm compute_opt_affine_quotient(const Eigen::MatrixXd &corners, co
     auto corner_g = corners.col(1).array();
     auto corner_f_prime = corners.col(2).array();
     auto corner_g_prime = corners.col(3).array();
-    auto quotient_rule_on_corners = quotient_rule(corner_f, corner_g, corner_f_prime, corner_g_prime).array();
+    Eigen::ArrayXd quotient_rule_on_corners = quotient_rule(corner_f, corner_g, corner_f_prime, corner_g_prime);
 
     auto evaluation = c1 * corner_f
                                     + c2 * corner_g
@@ -148,13 +149,14 @@ inline AffineForm compute_opt_affine_quotient(const Eigen::MatrixXd &corners, co
         auto f_prime = points[2];
         auto g_prime = points[3];
 
-        auto difference = std::abs((g * f_prime - f * g_prime) / std::pow(g, 2u));
+        auto linear_approx = c1 * f + c2 * g + c3 * f_prime + c4 * g_prime + intercept;
+        auto difference = std::abs(quotient_rule(f, g, f_prime, g_prime) - linear_approx);
         if (difference > max_deviation) {
             max_deviation = difference;
         }
     }
 
-    auto affine_result = rhs.primal_ref().affine_rep() * c1 + rhs.primal_ref().affine_rep() * c2 + lhs.deriv_ref().affine_rep() * c3 + rhs.deriv_ref().affine_rep() * c4 + intercept;
+    auto affine_result = lhs.primal_ref().affine_rep() * c1 + rhs.primal_ref().affine_rep() * c2 + lhs.deriv_ref().affine_rep() * c3 + rhs.deriv_ref().affine_rep() * c4 + intercept;
     affine_result.add_noise_symbol(max_deviation);
     return affine_result;
 }
@@ -192,8 +194,8 @@ inline Winterval compute_opt_interval_quotient(const Eigen::MatrixXd &corners,
         return { *std::ranges::min_element(corner_evals), *std::ranges::max_element(corner_evals) };
     }
     // corner evaluations cannot be empty
-    auto lower = *std::min(std::ranges::min_element(corner_evals), std::ranges::min_element(root_evals));
-    auto upper = *std::max(std::ranges::max_element(corner_evals), std::ranges::max_element(root_evals));
+    auto lower = std::min(*std::ranges::min_element(corner_evals), *std::ranges::min_element(root_evals));
+    auto upper = std::max(*std::ranges::max_element(corner_evals), *std::ranges::max_element(root_evals));
     return {lower, upper};
 }
 

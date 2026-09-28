@@ -77,6 +77,27 @@ TEST(dual_binop, division_mixed_form) {
 
 // ── Division ──────────────────────────────────────────────────────────────────
 
+TEST(dual_binop, division_mixed_form_sound) {
+    // Every concrete (f/g)' = (f'g - fg') / g^2 over the input box must lie in the synthesized bounds.
+    DualNumber x(MixedForm(Winterval(2.2, 4)), MixedForm(Winterval(0.5, 1)));
+    DualNumber y(MixedForm(Winterval(1, 3)), MixedForm(Winterval(-1, 1.1)));
+    auto result = x / y;
+
+    constexpr int n = 9;
+    auto lerp = [](const MixedForm &m, int i) { return m.min() + (m.max() - m.min()) * i / (n - 1); };
+    for (int a = 0; a < n; ++a)
+    for (int b = 0; b < n; ++b)
+    for (int c = 0; c < n; ++c)
+    for (int d = 0; d < n; ++d) {
+        double f = lerp(x.primal_ref(), a), g = lerp(y.primal_ref(), b);
+        double fp = lerp(x.deriv_ref(), c), gp = lerp(y.deriv_ref(), d);
+        double deriv = (fp * g - f * gp) / (g * g);
+        ASSERT_GE(deriv, result.deriv_ref().min() - 1e-9);
+        ASSERT_LE(deriv, result.deriv_ref().max() + 1e-9);
+    }
+}
+
+
 TEST(dual_binop, division_quotient_rule) {
     // x=4, y=2 (constant):  (f/g)' = (f'g - fg') / g^2 = (1*2 - 4*0) / 4 = 0.5
     DualNumber x(Winterval(4, 4), Winterval(1, 1));

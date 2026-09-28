@@ -62,8 +62,9 @@ synthesized_transformer_roots_tanh(double y) {
 
     // From substituted S and T retrive actual roots
     auto x1 = S + T;
-    auto x2 = -0.5 * (S + T) + std::sqrt(3.0) / 2.0 * (S - T);
-    auto x3 = -0.5 * (S + T) - std::sqrt(3.0) / 2.0 * (S - T);
+    const auto i_sqrt3_2 = std::complex(0.0, std::sqrt(3.0) / 2.0);
+    auto x2 = -0.5 * (S + T) + i_sqrt3_2 * (S - T);
+    auto x3 = -0.5 * (S + T) - i_sqrt3_2 * (S - T);
 
     return { x1, x2, x3 };
 }
@@ -93,9 +94,14 @@ inline std::vector<double> tanh_interior_critical_points(double synthesized_coef
     // imaginary
     auto tolerance = 1e-8;
     for (auto &root : found_roots) {
+        // Roots are values of tanh(x): map back to x before checking against f's bounds.
         auto real = root.real();
-        if (std::abs(root.imag()) < tolerance && real >= min_f && real <= max_f) {
-            valid_roots.push_back(arctanh(root.real()));
+        if (std::abs(root.imag()) >= tolerance || std::abs(real) >= 1) {
+            continue;
+        }
+        auto x = arctanh(real);
+        if (x >= min_f && x <= max_f) {
+            valid_roots.push_back(x);
         }
     }
 

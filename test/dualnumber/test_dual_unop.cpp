@@ -99,6 +99,22 @@ TEST(dual_unop, tanh_mixedform_synth_print) {
     // std::cout << "MixedForm tanh: " << mixed_result << std::endl;
 }
 
+TEST(dual_unop, tanh_mixedform_sound) {
+    // Every concrete (1 - tanh^2(x)) * x' over the input box must lie in the synthesized bounds.
+    DualNumber x(MixedForm(Winterval(-2, 1.5)), MixedForm(Winterval(-1, 2)));
+    auto result = x.tanh();
+
+    constexpr int n = 41;
+    for (int a = 0; a < n; ++a)
+    for (int b = 0; b < n; ++b) {
+        double p = x.primal_ref().min() + (x.primal_ref().max() - x.primal_ref().min()) * a / (n - 1);
+        double d = x.deriv_ref().min() + (x.deriv_ref().max() - x.deriv_ref().min()) * b / (n - 1);
+        double deriv = (1 - std::tanh(p) * std::tanh(p)) * d;
+        ASSERT_GE(deriv, result.deriv_ref().min() - 1e-9);
+        ASSERT_LE(deriv, result.deriv_ref().max() + 1e-9);
+    }
+}
+
 TEST(dual_unop, sigmoid) {
     DualNumber x(Winterval(1, 3), Winterval(1, 1));
     auto result = x.sigmoid();

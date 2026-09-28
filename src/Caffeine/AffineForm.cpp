@@ -113,6 +113,9 @@ AffineForm AffineForm::operator+(const AffineForm &other) const {
     print_debug_info("addition", time);
 #   endif
 
+    if (value._coefficients.size() > MAX_NOISE_SYMBOLS) {
+        value.collapse();
+    }
     // Since affine addition introduces no new error, we don't need to add a new value!
     return value;
 }
@@ -136,6 +139,9 @@ AffineForm AffineForm::operator-(const AffineForm &other) const {
     print_debug_info("subtraction", time);
 #   endif
 
+    if (value._coefficients.size() > MAX_NOISE_SYMBOLS) {
+        value.collapse();
+    }
     return value;
 }
 AffineForm AffineForm::operator*(const AffineForm &right) const {
@@ -168,6 +174,9 @@ AffineForm AffineForm::operator*(const AffineForm &right) const {
     // Affine multiplication adds a noise symbol.
     // For now, we add an error w/ coeff rad * rad, following Affapy impl.
     result._coefficients[new_noise_symbol()] = this->radius() * right.radius();
+    if (result._coefficients.size() > MAX_NOISE_SYMBOLS) {
+        result.collapse();
+    }
 
 #   ifdef AFFINE_TIME_MULT
     print_debug_info("multiplication", time);
@@ -238,7 +247,8 @@ AffineForm AffineForm::sqrt() const {
     return approximate_affine_form(alpha, dzeta, delta);
 }
 AffineForm AffineForm::exp() const {
-    if (radius() == INFINITY || radius() == NAN) {
+    auto rad = radius();
+    if (rad == INFINITY || std::isnan(rad)) {
         return AffineForm(Winterval(0, INFINITY));
     }
 
@@ -346,6 +356,9 @@ AffineForm AffineForm::union_with(const AffineForm &other) const {
     if (error > 0) {
         result._coefficients[new_noise_symbol()] = error;
     }
+    if (result._coefficients.size() > MAX_NOISE_SYMBOLS) {
+        result.collapse();
+    }
 
     return result;
 }
@@ -440,6 +453,9 @@ AffineForm AffineForm::operator/(double other) const {
  */
 void AffineForm::add_noise_symbol(double coeff) {
     _coefficients.insert({new_noise_symbol(), coeff});
+    if (_coefficients.size() > MAX_NOISE_SYMBOLS) {
+        collapse();
+    }
 }
 
 /*
