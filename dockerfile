@@ -27,7 +27,7 @@ RUN dnf install -y \
 WORKDIR /workspace
 COPY . /workspace
 
-RUN cd ./scripts && chmod +x ./update-deps && ./update-deps && cd ..
+RUN cd ./scripts && chmod +x ./update_deps && ./update_deps && cd ..
 
 RUN mkdir -p build && cd build \
     && cmake -DCMAKE_BUILD_TYPE=Release .. \
