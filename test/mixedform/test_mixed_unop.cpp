@@ -15,7 +15,7 @@ TEST(mixed_unop, test_mixed_abs) {
 TEST(mixed_unop, test_mixed_pow) {
     auto form = MixedForm(Winterval(-3, 2));
     auto result = form.pow(2);
-    EXPECT_EQ(result.interval_bounds(), Winterval(-6, 9));
+    EXPECT_EQ(result.interval_bounds(), Winterval(0, 9));   // exact: squares are never negative
 }
 TEST(mixed_unop, test_mixed_pow_zero) {
     // x^0 = 1 for any x ≠ 0.

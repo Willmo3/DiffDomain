@@ -229,12 +229,11 @@ Winterval Winterval::pow(int power) const {
         return { std::pow(_min, power), std::pow(_max, power) };
     }
 
-    // Otherwise, we have an even power.
-
-    // Start with a sound bound for the n-1st exponentiation.
-    auto odd_subinterval = Winterval(std::pow(_min, power - 1), std::pow(_max, power - 1));
-    // Then, perform the last operation using the general rules for interval multiply.
-    return odd_subinterval * Winterval(_min, _max);
+    // Otherwise, we have an even power: x^p falls towards 0 and rises away from it, so the minimum is at the
+    // point of the interval closest to 0 (0 itself if the interval contains it) and the maximum at the farthest.
+    auto abs_min = std::abs(_min), abs_max = std::abs(_max);
+    auto closest = contains(0) ? 0.0 : std::min(abs_min, abs_max);
+    return { std::pow(closest, power), std::pow(std::max(abs_min, abs_max), power) };
 }
 Winterval Winterval::abs() const {
     if (_max < 0) {

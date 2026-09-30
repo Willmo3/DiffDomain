@@ -120,7 +120,7 @@ TEST(winterval, pow) {
     ASSERT_EQ(4, pow_1.max());
 
     auto pow_2 = base.pow(2);
-    ASSERT_EQ(-4, pow_2.min());
+    ASSERT_EQ(0, pow_2.min());   // squares are never negative; 0 is in [-1, 4]
     ASSERT_EQ(16, pow_2.max());
 
     auto pow_3 = base.pow(3);
@@ -341,4 +341,12 @@ TEST(winterval, sqrt_mixed_sign_interval) {
     auto w = Winterval(-1, 4).sqrt();
     ASSERT_TRUE(std::isnan(w.min()));
     ASSERT_TRUE(std::isnan(w.max()));
+}
+
+TEST(winterval, pow_even_tight) {
+    // Even powers are exact: straddling 0 gives [0, farthest^p], one-signed intervals map endpoints.
+    ASSERT_EQ(Winterval(0, 4), Winterval(-1, 2).pow(2));
+    ASSERT_EQ(Winterval(0, 16), Winterval(-2, 1).pow(4));
+    ASSERT_EQ(Winterval(1, 9), Winterval(-3, -1).pow(2));
+    ASSERT_EQ(Winterval(0, 0), Winterval(0, 0).pow(2));
 }

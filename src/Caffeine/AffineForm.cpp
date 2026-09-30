@@ -350,11 +350,20 @@ AffineForm AffineForm::union_with(const AffineForm &other) const {
     // using join formula from Taylor1+ (https://link.springer.com/chapter/10.1007/978-3-642-02658-4_47)
     auto interval_union = to_interval().union_with(other.to_interval());
     auto result = AffineForm(interval_union.mid());
-    // Symbols in one side keep that side's coefficient; shared symbols take the smaller magnitude.
+    // Each coefficient is argmin(|l|, |r|) over [min(l, r), max(l, r)]: the smaller-magnitude one, sign kept,
+    // or 0 when the signs differ. A symbol missing from one side counts as 0 there, so it drops out.
+    // This keeps |l - result| = |l| - |result| (and likewise for r), which is what lets the single error
+    // term below cover both operands for every assignment of the shared symbols.
     result._coefficients = merge_coefficients(_coefficients, other._coefficients,
-        [](double l, double r) { return std::min(std::abs(l), std::abs(r)); },
-        [](double l) { return l; },
-        [](double r) { return r; });
+        [](double l, double r) {
+            if ((l > 0 && r > 0) || (l < 0 && r < 0)) {
+                return std::abs(l) <= std::abs(r) ? l : r;
+            }
+            return 0.0;
+        },
+        [](double) { return 0.0; },
+        [](double) { return 0.0; });
+    std::erase_if(result._coefficients, [](const auto &entry) { return entry.second == 0.0; });
 
     auto error = interval_union.max() - result.center() - result.radius();
     if (error > 0) {
