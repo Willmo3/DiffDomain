@@ -17,7 +17,6 @@ class Real {
 public:
     Real() = default;
     Real(double value);
-    ~Real();
 
     /*
      * Accessors

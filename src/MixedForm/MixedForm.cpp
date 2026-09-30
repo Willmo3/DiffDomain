@@ -6,17 +6,19 @@
 
 #include <complex>
 #include <memory>
+#include <utility>
 
 /*
  * Constructors
  */
-MixedForm::MixedForm(const AffineForm &affine_rep, const Winterval &interval_rep) :
-    _affine_rep(affine_rep),
-    _intersected_bounds(interval_intersection(affine_rep, interval_rep)) {}
+// Note: affine_rep is moved from, so later initializers must read _affine_rep (declared first, so already set).
+MixedForm::MixedForm(AffineForm affine_rep, const Winterval &interval_rep) :
+    _affine_rep(std::move(affine_rep)),
+    _intersected_bounds(interval_intersection(_affine_rep, interval_rep)) {}
 
-MixedForm::MixedForm(const AffineForm &affine_rep) :
-    _affine_rep(affine_rep),
-    _intersected_bounds(affine_rep.to_interval()) {}
+MixedForm::MixedForm(AffineForm affine_rep) :
+    _affine_rep(std::move(affine_rep)),
+    _intersected_bounds(_affine_rep.to_interval()) {}
 
 MixedForm::MixedForm(const Winterval &interval_rep) :
     _affine_rep(interval_rep),
@@ -80,10 +82,8 @@ MixedForm MixedForm::operator-(const double scalar) const {
 }
 MixedForm MixedForm::operator*(const double scalar) const {
     // Must propagate affine form, even if interval tighter, to preserve relationship between vars.
-    return {
-        _affine_rep * scalar,
-        interval_intersection(_affine_rep * scalar, _intersected_bounds * scalar)
-    };
+    // The constructor intersects the two representations.
+    return { _affine_rep * scalar, _intersected_bounds * scalar };
 }
 MixedForm MixedForm::operator/(const double scalar) const {
     // Divison by 0 ill defined for affine forms.
@@ -92,10 +92,7 @@ MixedForm MixedForm::operator/(const double scalar) const {
     }
 
     // Otherwise, propagate affine form, even if interval tighter, to preserve relationship between vars.
-    return {
-        _affine_rep / scalar,
-        interval_intersection(_affine_rep / scalar, _intersected_bounds / scalar)
-    };
+    return { _affine_rep / scalar, _intersected_bounds / scalar };
 }
 
 /*
@@ -186,12 +183,13 @@ MixedForm MixedForm::relu() const {
 Winterval MixedForm::interval_intersection(const AffineForm &a, const Winterval &b) {
     // Affine division is undefined for some problems, can propage nan.
     // in this case, only interval bound!
-    if (std::isnan(a.min()) || std::isnan(a.max())) {
+    auto a_bounds = a.to_interval();
+    if (std::isnan(a_bounds.min()) || std::isnan(a_bounds.max())) {
         return {b.min(), b.max()};
     }
 
-    auto min_intersect = std::max(a.to_interval().min(), b.min());
-    auto max_intersect = std::min(a.to_interval().max(), b.max());
+    auto min_intersect = std::max(a_bounds.min(), b.min());
+    auto max_intersect = std::min(a_bounds.max(), b.max());
 
     if (min_intersect > max_intersect) {
         // This can happen e.g. when dividing by 0.

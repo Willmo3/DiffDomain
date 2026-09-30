@@ -14,6 +14,7 @@
 #include <vector>
 #include <complex>
 #include <tuple>
+#include <utility>
 
 #include "cereal/cereal.hpp"
 #include "Numeric.hpp"
@@ -41,7 +42,7 @@ public:
      * @param primal Primal (function) value.
      * @param deriv  Derivative value.
      */
-    DualNumber(T primal, T deriv): _primal_value(primal), _deriv_value(deriv) {}
+    DualNumber(T primal, T deriv): _primal_value(std::move(primal)), _deriv_value(std::move(deriv)) {}
 
     /*
      * Accessors
@@ -156,7 +157,10 @@ public:
      * @return A new dual number representing the result of sqrt with chain rule applied.
      */
     [[nodiscard]] DualNumber sqrt() const {
-        return { _primal_value.sqrt(), _deriv_value / (_primal_value.sqrt() * 2.0) };
+        // Reuse sqrt(f): recomputing it would cost a second approximation and a fresh, uncorrelated noise symbol.
+        auto sqrt_primal = _primal_value.sqrt();
+        auto sqrt_deriv = _deriv_value / (sqrt_primal * 2.0);
+        return { std::move(sqrt_primal), std::move(sqrt_deriv) };
     }
     /**
      * @return A new dual number representing the absolute value, d/dx(|f|) = sign(f) * f'.

@@ -10,7 +10,6 @@
 #include <string>
 
 Real::Real(double value): _value(value) {}
-Real::~Real() = default;
 
 double Real::value() const {
     return _value;

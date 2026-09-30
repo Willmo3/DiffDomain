@@ -26,7 +26,6 @@ Winterval::Winterval(double value) {
     _max = value;
 }
 Winterval::Winterval() : _min(0), _max(0) {}
-Winterval::~Winterval() = default;
 
 /*
  * Accessors
@@ -66,7 +65,8 @@ Winterval Winterval::operator*(const Winterval &rhs) const {
     };
 }
 Winterval Winterval::operator/(const Winterval &rhs) const {
-    std::vector<double> candidate_values;
+    double candidate_values[6];
+    size_t n_candidates = 0;
 
     // if point is exactly 0, must be NAN -- no 0.
     if (rhs._min == 0 && rhs._max == 0) {
@@ -78,37 +78,37 @@ Winterval Winterval::operator/(const Winterval &rhs) const {
         // if max = 0, approaching from left -- negative infinitesimal
         // negative / -inf = inf
         if (_min < 0) {
-            candidate_values.push_back(INFINITY);
+            candidate_values[n_candidates++] = INFINITY;
         }
         // positive / -inf = -inf
         if (_max > 0) {
-            candidate_values.push_back(-INFINITY);
+            candidate_values[n_candidates++] = -INFINITY;
         }
     } else if (rhs.contains(0)) {
         // negative / inf = -inf
         if (_min < 0) {
-            candidate_values.push_back(-INFINITY);
+            candidate_values[n_candidates++] = -INFINITY;
         }
         // positive / inf = inf
         if (_max > 0) {
-            candidate_values.push_back(INFINITY);
+            candidate_values[n_candidates++] = INFINITY;
         }
     }
 
     // We now add the boundaries of a / the boundaries of b to the interval, as with multiplication.
     // Skip zero boundaries, as we will have already covered this.
     if (rhs._min != 0) {
-        candidate_values.push_back(_min / rhs._min);
-        candidate_values.push_back(_max / rhs._min);
+        candidate_values[n_candidates++] = _min / rhs._min;
+        candidate_values[n_candidates++] = _max / rhs._min;
     }
     if (rhs._max != 0) {
-        candidate_values.push_back(_min / rhs._max);
-        candidate_values.push_back(_max / rhs._max);
+        candidate_values[n_candidates++] = _min / rhs._max;
+        candidate_values[n_candidates++] = _max / rhs._max;
     }
 
     return {
-        *std::ranges::min_element(candidate_values),
-        *std::ranges::max_element(candidate_values),
+        *std::min_element(candidate_values, candidate_values + n_candidates),
+        *std::max_element(candidate_values, candidate_values + n_candidates),
     };
 }
 

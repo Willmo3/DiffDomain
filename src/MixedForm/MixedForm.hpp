@@ -27,13 +27,13 @@ public:
      * @param affine_rep Affine form to construct from.
      * @param interval_rep Interval to construct from.
      */
-    MixedForm(const AffineForm &affine_rep, const Winterval &interval_rep);
+    MixedForm(AffineForm affine_rep, const Winterval &interval_rep);
 
     /**
      * Create a new MixedForm from an affine form. Interval is constructed from affine form.
      * @param affine_rep Affine form to construct from.
      */
-    explicit MixedForm(const AffineForm &affine_rep);
+    explicit MixedForm(AffineForm affine_rep);
 
     /**
      * Create a new MixedForm from an interval. Affine form is constructed from interval.

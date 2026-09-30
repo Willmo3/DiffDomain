@@ -22,6 +22,6 @@ C++20 numeric abstract domains for abstract interpretation of PDE solvers (co-de
 - `dockerfile` — Fedora 40 build env.
 
 ## Gotchas
-- AffineForm has static noise-symbol state (`max_noise_symbol`), so test ordering in `test/affine/CMakeLists.txt` matters.
+- AffineForm has global noise-symbol state (`max_noise_symbol`), so ids depend on everything allocated earlier. Tests must refer to symbols relative to `AffineForm::next_noise_symbol()`, never by absolute id — test run order is not stable (LTO reverses it).
 - Includes are rooted at `src/` and `lib/` (e.g. `#include "Winterval/Winterval.hpp"`, `"cereal/..."`).
 - New domain ops must be added to every domain to keep satisfying `Numeric`.

@@ -63,7 +63,7 @@ public:
      * @param center Real number center for affine form.
      * @param starting_coeffs error coefficients to prime the affine form with
      */
-    AffineForm(double center, const std::unordered_map<noise_symbol_t, double> &starting_coeffs);
+    AffineForm(double center, std::unordered_map<noise_symbol_t, double> starting_coeffs);
     /**
      * @param interval Interval to construct center, error points from.
      */
@@ -83,6 +83,11 @@ public:
      * @return the coefficient if noise symbol represented in this affine form, NaN otherwise.
      */
     double coeff_of(noise_symbol_t symbol) const;
+    /**
+     * @return The symbol the next newly allocated noise symbol will receive.
+     * Lets callers (e.g. tests) refer to symbols relative to a known point rather than by absolute id.
+     */
+    static noise_symbol_t next_noise_symbol();
     Winterval to_interval() const;
 
     /*
@@ -286,7 +291,7 @@ private:
     std::unordered_map<noise_symbol_t, double> _coefficients;
 };
 
-std::ostream& operator<<(std::ostream &os, AffineForm rhs);
+std::ostream& operator<<(std::ostream &os, const AffineForm &rhs);
 
 
 #endif //CAFFEINE_AFFINEFORM_H

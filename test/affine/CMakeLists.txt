@@ -1,4 +1,3 @@
-# NOTE: due to static state, ordering of these test cases is important!
 add_executable(test_caffeine test_affine_binop.cpp
         test_affine_unop.cpp
         test_affine_scalar.cpp
