@@ -3,6 +3,7 @@
 //
 
 #include <gtest/gtest.h>
+#include <random>
 #include <sstream>
 
 #include "DualNumber/DualNumber.hpp"
@@ -55,3 +56,32 @@ TEST(dual_misc, stream_output_is_non_empty) {
     EXPECT_FALSE(oss.str().empty());
 }
 
+
+TEST(dual_misc, regress_grid_matches_svd) {
+    // On full-factorial grids the closed-form fit must agree with polylib's QR least squares.
+    std::mt19937 rng(3);
+    std::uniform_real_distribution<double> u(-3, 3);
+    auto axis = [&](int n, bool degenerate) {
+        double lo = u(rng), hi = degenerate ? lo : u(rng);
+        return Eigen::VectorXd::LinSpaced(n, std::min(lo, hi), std::max(lo, hi)).eval();
+    };
+    for (int trial = 0; trial < 50; ++trial) {
+        bool degenerate = trial % 5 == 0;   // one dimension collapsed to a point
+        Eigen::MatrixXd xs = trial % 2
+            ? cartesian_product(axis(8, false), axis(8, degenerate))
+            : cartesian_product(axis(5, false), axis(5, false), axis(5, degenerate), axis(5, false));
+        Eigen::VectorXd y(xs.rows());
+        for (Eigen::Index r = 0; r < xs.rows(); ++r) y(r) = std::tanh(xs(r, 0)) * xs(r, 1) + xs.row(r).sum();
+
+        Eigen::VectorXd grid = regress_grid(xs, y), svd = regress_svd(xs, y);
+        auto predict = [&](const Eigen::VectorXd &c) { return ((xs * c.tail(xs.cols())).array() + c(0)).matrix().eval(); };
+        if (degenerate) {
+            // QR misses the rank deficiency here and returns huge cancelling coefficients (~1e12),
+            // so require only that the closed form is at least as good a least-squares fit.
+            ASSERT_LE((predict(grid) - y).squaredNorm(), (predict(svd) - y).squaredNorm() + 1e-9);
+            ASSERT_LT(grid.cwiseAbs().maxCoeff(), 1e3);
+        } else {
+            ASSERT_LT((grid - svd).cwiseAbs().maxCoeff(), 1e-9);
+        }
+    }
+}

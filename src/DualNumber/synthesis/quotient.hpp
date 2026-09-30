@@ -94,7 +94,7 @@ inline AffineForm compute_opt_affine_quotient(const Eigen::MatrixXd &corners, co
     auto sampled_derivatives = quotient_rule(f, g, f_prime, g_prime);
 
     // Synthesize a well-formed linear approximation of the quotient rule output.
-    auto fit = regress_svd(xys, sampled_derivatives);
+    auto fit = regress_grid(xys, sampled_derivatives);
     auto intercept = fit(0);
     auto c1 = fit(1);
     auto c2 = fit(2);

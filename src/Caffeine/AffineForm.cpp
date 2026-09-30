@@ -7,7 +7,7 @@
 #include <chrono>
 #include <cmath>
 #include <iostream>
-#include <map>
+#include <algorithm>
 #include <numeric>
 #include <ranges>
 #include <utility>
@@ -26,6 +26,37 @@ AffineForm::noise_symbol_t AffineForm::next_noise_symbol() {
     return max_noise_symbol.load(std::memory_order_relaxed);
 }
 
+namespace {
+/**
+ * Merge two sorted coefficient lists in one pass.
+ * Symbols in both call both(l, r); symbols in only one side call left_only(l) / right_only(r).
+ */
+template<class Both, class LeftOnly, class RightOnly>
+AffineForm::coefficients_t merge_coefficients(const AffineForm::coefficients_t &left, const AffineForm::coefficients_t &right,
+                                              Both both, LeftOnly left_only, RightOnly right_only) {
+    AffineForm::coefficients_t result;
+    result.reserve(left.size() + right.size() + 1);  // +1: room for a new noise symbol without reallocating
+    auto l = left.begin();
+    auto r = right.begin();
+    while (l != left.end() && r != right.end()) {
+        if (l->first < r->first) {
+            result.emplace_back(l->first, left_only(l->second));
+            ++l;
+        } else if (r->first < l->first) {
+            result.emplace_back(r->first, right_only(r->second));
+            ++r;
+        } else {
+            result.emplace_back(l->first, both(l->second, r->second));
+            ++l;
+            ++r;
+        }
+    }
+    for (; l != left.end(); ++l) result.emplace_back(l->first, left_only(l->second));
+    for (; r != right.end(); ++r) result.emplace_back(r->first, right_only(r->second));
+    return result;
+}
+}
+
 void print_debug_info(const std::string &op_name, const std::chrono::high_resolution_clock::time_point &start_time) {
     auto end_time = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count();
@@ -35,8 +66,11 @@ void print_debug_info(const std::string &op_name, const std::chrono::high_resolu
 /*
  * Constructors
  */
-AffineForm::AffineForm(double center, std::unordered_map<noise_symbol_t, double> starting_coeffs):
+AffineForm::AffineForm(double center, coefficients_t starting_coeffs):
     _center(center), _coefficients(std::move(starting_coeffs)) {
+    if (!std::ranges::is_sorted(_coefficients, {}, &coefficients_t::value_type::first)) {
+        std::ranges::sort(_coefficients, {}, &coefficients_t::value_type::first);
+    }
 
     // Reset noise symbols if needed.
     // NOTE: this branch will almost never be taken!
@@ -45,11 +79,9 @@ AffineForm::AffineForm(double center, std::unordered_map<noise_symbol_t, double>
     }
 }
 AffineForm::AffineForm(const Winterval &interval): _center((interval.min() + interval.max()) / 2),
-    _coefficients(std::unordered_map<noise_symbol_t, double>()) {
-    _coefficients.insert(std::pair(new_noise_symbol(), (interval.min() - interval.max()) / 2));
-}
-AffineForm::AffineForm(double value): _center(value), _coefficients(std::unordered_map<noise_symbol_t, double>()) {}
-AffineForm::AffineForm(): _center(0), _coefficients(std::unordered_map<noise_symbol_t, double>()) {}
+    _coefficients{{new_noise_symbol(), (interval.min() - interval.max()) / 2}} {}
+AffineForm::AffineForm(double value): _center(value) {}
+AffineForm::AffineForm(): _center(0) {}
 
 /*
  * Unary operators
@@ -99,15 +131,12 @@ AffineForm AffineForm::operator+(const AffineForm &other) const {
     auto time = std::chrono::high_resolution_clock::now();
 #   endif
 
-    auto value = clone();
-    value._center += other._center;
-
-    for (auto [symbol, coeff] : other._coefficients) {
-        // Outer product is union of both fields' error symbols. Common error symbols are added.
-        if (auto [it, inserted] = value._coefficients.try_emplace(symbol, coeff); !inserted) {
-            it->second += coeff;
-        }
-    }
+    // Outer product is union of both fields' error symbols. Common error symbols are added.
+    auto value = AffineForm(_center + other._center);
+    value._coefficients = merge_coefficients(_coefficients, other._coefficients,
+        [](double l, double r) { return l + r; },
+        [](double l) { return l; },
+        [](double r) { return r; });
 
 #   ifdef AFFINE_TIME_ADD
     print_debug_info("addition", time);
@@ -124,14 +153,11 @@ AffineForm AffineForm::operator-(const AffineForm &other) const {
     auto time = std::chrono::high_resolution_clock::now();
 #   endif
 
-    auto value = clone();
-    value._center -= other._center;
-
-    for (auto [symbol, coeff] : other._coefficients) {
-        if (auto [it, inserted] = value._coefficients.try_emplace(symbol, -coeff); !inserted) {
-            it->second -= coeff;
-        }
-    }
+    auto value = AffineForm(_center - other._center);
+    value._coefficients = merge_coefficients(_coefficients, other._coefficients,
+        [](double l, double r) { return l - r; },
+        [](double l) { return l; },
+        [](double r) { return -r; });
 
 #   ifdef AFFINE_TIME_SUB
     print_debug_info("subtraction", time);
@@ -147,29 +173,17 @@ AffineForm AffineForm::operator*(const AffineForm &right) const {
     auto time = std::chrono::high_resolution_clock::now();
 #   endif
 
-    auto result = AffineForm(this->_center * right._center, std::unordered_map<noise_symbol_t, double>());
-    // Affine form multiplication is an outer product.
-
-    // Perform product for all error symbols in rhs.
-    for (auto [symbol, coeff] : right._coefficients) {
-        auto a = this->_center * coeff;
-        if (auto it = this->_coefficients.find(symbol); it == this->_coefficients.end()) {
-            // Add missing error terms scaled by left's center.
-            result._coefficients.emplace(symbol, a);
-        } else {
-            result._coefficients.emplace(symbol, a + right._center * it->second);
-        }
-    }
-
-    // Now go and perform similar calculation for error symbols in lhs that weren't caught earlier.
-    // result already holds every rhs symbol, so try_emplace only inserts lhs-only symbols.
-    for (auto [symbol, coeff] : this->_coefficients) {
-        result._coefficients.try_emplace(symbol, right._center * coeff);
-    }
+    // Affine form multiplication is an outer product: each side's error terms are scaled by the other's center.
+    auto result = AffineForm(this->_center * right._center);
+    const auto lc = this->_center, rc = right._center;
+    result._coefficients = merge_coefficients(_coefficients, right._coefficients,
+        [=](double l, double r) { return lc * r + rc * l; },
+        [=](double l) { return rc * l; },
+        [=](double r) { return lc * r; });
 
     // Affine multiplication adds a noise symbol.
     // For now, we add an error w/ coeff rad * rad, following Affapy impl.
-    result._coefficients[new_noise_symbol()] = this->radius() * right.radius();
+    result.push_symbol(new_noise_symbol(), this->radius() * right.radius());
     if (result._coefficients.size() > MAX_NOISE_SYMBOLS) {
         result.collapse();
     }
@@ -191,7 +205,7 @@ AffineForm AffineForm::pow(uint32_t power) const {
     // TODO: as we adapt the numeric API, we could switch this to use negative numbers w/ the inverse strategy.
     if (power == 0) {
         // Our implementation always returns affine forms, even if the power is 0 -- in this case, an exact affine form.
-        return { 1, std::unordered_map<noise_symbol_t, double>() };
+        return AffineForm(1.0);
     }
 
     auto odd_power = power > 1 && power % 2 == 1;
@@ -334,21 +348,17 @@ AffineForm AffineForm::relu() const {
  */
 AffineForm AffineForm::union_with(const AffineForm &other) const {
     // using join formula from Taylor1+ (https://link.springer.com/chapter/10.1007/978-3-642-02658-4_47)
-    auto result = clone();
     auto interval_union = to_interval().union_with(other.to_interval());
-    result._center = interval_union.mid();
-
-    for (auto [symbol, coeff] : other._coefficients) {
-        // Add missing error terms with other's magnitude; otherwise, union takes the min of the two.
-        // result starts as a clone of this, so an existing entry still holds this's coefficient.
-        if (auto [it, inserted] = result._coefficients.try_emplace(symbol, coeff); !inserted) {
-            it->second = std::min(std::abs(it->second), std::abs(coeff));
-        }
-    }
+    auto result = AffineForm(interval_union.mid());
+    // Symbols in one side keep that side's coefficient; shared symbols take the smaller magnitude.
+    result._coefficients = merge_coefficients(_coefficients, other._coefficients,
+        [](double l, double r) { return std::min(std::abs(l), std::abs(r)); },
+        [](double l) { return l; },
+        [](double r) { return r; });
 
     auto error = interval_union.max() - result.center() - result.radius();
     if (error > 0) {
-        result._coefficients[new_noise_symbol()] = error;
+        result.push_symbol(new_noise_symbol(), error);
     }
     if (result._coefficients.size() > MAX_NOISE_SYMBOLS) {
         result.collapse();
@@ -437,7 +447,7 @@ AffineForm AffineForm::operator-(double other) const {
 AffineForm AffineForm::operator/(double other) const {
     // Special case: 0. In affine forms, this will set all terms to 0, leading to a unit form.
     if (other == 0) {
-        return { 0, std::unordered_map<noise_symbol_t, double>() };
+        return AffineForm(0.0);
     }
     return operator*(1 / other);
 }
@@ -446,7 +456,7 @@ AffineForm AffineForm::operator/(double other) const {
  * Explicit modifiers
  */
 void AffineForm::add_noise_symbol(double coeff) {
-    _coefficients.insert({new_noise_symbol(), coeff});
+    push_symbol(new_noise_symbol(), coeff);
     if (_coefficients.size() > MAX_NOISE_SYMBOLS) {
         collapse();
     }
@@ -494,8 +504,8 @@ Winterval AffineForm::to_interval() const {
 }
 
 double AffineForm::coeff_of(noise_symbol_t symbol) const {
-    auto it = _coefficients.find(symbol);
-    return it == _coefficients.end() ? NAN : it->second;
+    auto it = std::ranges::lower_bound(_coefficients, symbol, {}, &coefficients_t::value_type::first);
+    return (it == _coefficients.end() || it->first != symbol) ? NAN : it->second;
 }
 
 /*
@@ -517,19 +527,21 @@ AffineForm AffineForm::approximate_affine_form(double alpha, double zeta, double
 
     auto center = alpha * _center + zeta;
 
-    auto map = std::unordered_map<noise_symbol_t, double>();
+    auto result = AffineForm(center);
+    result._coefficients.reserve(_coefficients.size() + 1);
     for (auto [symbol, coeff] : _coefficients) {
-        auto new_value = alpha * coeff;
-        map.insert({symbol, new_value});
+        result._coefficients.emplace_back(symbol, alpha * coeff);
     }
-
-    map.insert({new_noise_symbol(), delta});
+    result.push_symbol(new_noise_symbol(), delta);
+    if (result._coefficients.size() > MAX_NOISE_SYMBOLS) {
+        result.collapse();
+    }
 
 #   ifdef AFFINE_TIME_OTHER
     print_debug_info("approximation constructions", time);
 #   endif
 
-    return { center, std::move(map) };
+    return result;
 }
 
 /*
@@ -576,7 +588,7 @@ AffineForm AffineForm::inv() const {
  */
 // Internal clone constructor
 AffineForm AffineForm::clone() const {
-    return { this->_center, this->_coefficients };
+    return *this;
 }
 
 void AffineForm::collapse() {
@@ -586,8 +598,17 @@ void AffineForm::collapse() {
         error_magnitude += std::abs(coeff);
     }
 
-    _coefficients = std::unordered_map<noise_symbol_t, double>();
-    _coefficients.insert({new_noise_symbol(), error_magnitude});
+    _coefficients.clear();
+    _coefficients.emplace_back(new_noise_symbol(), error_magnitude);
+}
+
+void AffineForm::push_symbol(noise_symbol_t symbol, double coeff) {
+    // Defensive fallback, e.g. a form holding a symbol another thread allocated later than this one.
+    if (!_coefficients.empty() && _coefficients.back().first >= symbol) {
+        auto it = std::ranges::lower_bound(_coefficients, symbol, {}, &coefficients_t::value_type::first);
+        _coefficients.insert(it, {symbol, coeff});
+    }
+    _coefficients.emplace_back(symbol, coeff);
 }
 
 

@@ -306,6 +306,29 @@ private:
 
 #ifdef USE_SYNTHESIZED_ZONOS
 #include "MixedForm/MixedForm.hpp"
+
+/**
+ * Least-squares fit y ~ c0 + sum_i c_i * x_i, for sample points on a full-factorial grid
+ * (every combination of per-dimension samples, as cartesian_product builds).
+ * On such a grid the centered columns are mutually orthogonal, so the normal equations decouple:
+ * c_i = cov(x_i, y) / var(x_i). Same solution as regress_svd, without a QR factorization.
+ * A dimension with zero variance (a point range) gets c_i = 0; the intercept absorbs it.
+ * @return (c0, c1, ..., ck)
+ */
+inline Eigen::VectorXd regress_grid(const Eigen::MatrixXd &xs, const Eigen::VectorXd &y) {
+    Eigen::VectorXd fit(xs.cols() + 1);
+    const Eigen::ArrayXd y_centered = y.array() - y.mean();
+    fit(0) = y.mean();
+    for (Eigen::Index i = 0; i < xs.cols(); ++i) {
+        const double mean = xs.col(i).mean();
+        const Eigen::ArrayXd centered = xs.col(i).array() - mean;
+        const double variance = centered.square().sum();
+        fit(i + 1) = variance > 0 ? (centered * y_centered).sum() / variance : 0.0;
+        fit(0) -= fit(i + 1) * mean;
+    }
+    return fit;
+}
+
 // Function-specific synthesis helpers
 #include "synthesis/tanh.hpp"
 #include "synthesis/quotient.hpp"

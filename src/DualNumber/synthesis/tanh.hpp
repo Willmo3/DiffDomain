@@ -124,7 +124,7 @@ inline AffineForm compute_opt_affine_tanh(const DualNumber<MixedForm> &value) {
     auto deriv_values = joint_range.col(1).array();
     auto sampled_outputs = tanh_chain(primal_values, deriv_values);
 
-    auto fit = regress_svd(joint_range, sampled_outputs);
+    auto fit = regress_grid(joint_range, sampled_outputs);
     auto intercept = fit[0];
     auto c1 = fit[1];
     auto c2 = fit[2];

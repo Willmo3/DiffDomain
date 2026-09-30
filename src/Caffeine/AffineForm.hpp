@@ -9,7 +9,7 @@
 #define CAFFEINE_AFFINEFORM_H
 #include <atomic>
 #include <cstdint>
-#include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "Winterval/Winterval.hpp"
@@ -45,6 +45,11 @@ public:
      * Noise symbols are integers that refer to unique sources of error in affine forms.
      */
     typedef uint32_t noise_symbol_t;
+    /**
+     * (symbol, coefficient) pairs, sorted by symbol with no duplicates.
+     * Sorted order lets binary operations merge in one linear pass, with no hashing.
+     */
+    typedef std::vector<std::pair<noise_symbol_t, double>> coefficients_t;
 
     /*
      * Constructors
@@ -61,9 +66,9 @@ public:
     explicit AffineForm(double value);
     /**
      * @param center Real number center for affine form.
-     * @param starting_coeffs error coefficients to prime the affine form with
+     * @param starting_coeffs error coefficients to prime the affine form with. Symbols must be unique; any order.
      */
-    AffineForm(double center, std::unordered_map<noise_symbol_t, double> starting_coeffs);
+    AffineForm(double center, coefficients_t starting_coeffs);
     /**
      * @param interval Interval to construct center, error points from.
      */
@@ -276,6 +281,11 @@ private:
      */
     void collapse();
 
+    /**
+     * Append a coefficient for a freshly allocated symbol, keeping _coefficients sorted.
+     */
+    void push_symbol(noise_symbol_t symbol, double coeff);
+
     /*
      * Fields
      */
@@ -285,10 +295,9 @@ private:
      */
     double _center;
     /**
-     * Map of noise symbols to their coefficients.
-     * Note that values will be heap allocated, so this data structure has a fixed size.
+     * Noise symbols and their coefficients, sorted by symbol.
      */
-    std::unordered_map<noise_symbol_t, double> _coefficients;
+    coefficients_t _coefficients;
 };
 
 std::ostream& operator<<(std::ostream &os, const AffineForm &rhs);

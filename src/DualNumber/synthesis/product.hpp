@@ -31,7 +31,7 @@ inline AffineForm compute_opt_affine_product(const DualNumber<MixedForm> &lhs, c
     auto sampled_derivatives = product_rule(f, g, f_prime, g_prime);
     // auto sampled_derivatives = product.col(0).array() * product.col(3).array() + product.col(1).array() * product.col(2).array();
 
-    auto fit = regress_svd(xys, sampled_derivatives);
+    auto fit = regress_grid(xys, sampled_derivatives);
     auto intercept = fit(0);
     auto c1 = fit(1);
     auto c2 = fit(2);
