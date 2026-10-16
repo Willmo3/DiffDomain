@@ -38,7 +38,8 @@
 class AffineForm {
 
 // Number of noise symbols a given affine form can accumulate before the symbols are collapsed.
-#define MAX_NOISE_SYMBOLS 128
+// 512 maintains parity with Phocus
+#define MAX_NOISE_SYMBOLS 512
 
 public:
     /**
