@@ -25,9 +25,12 @@ TEST(affine_unop, abs) {
     ASSERT_NEAR(value.center(), 1.5, 0.001);
     ASSERT_NEAR(value.radius(), 0.5, 0.001);
 
-    value = AffineForm(Winterval(-1, 2)).abs();
-    ASSERT_NEAR(value.center(), 0.25, 0.001);
-    ASSERT_NEAR(value.radius(), 0.75, 0.001);
+    // Straddles zero: must contain [0, 2]. Computed as 2 * relu(x) - x.
+    value = AffineForm(Winterval(-1, 3)).abs();
+    ASSERT_LE(value.min(), 0.0);
+    ASSERT_GE(value.max(), 3.0);
+    ASSERT_NEAR(value.center(), 1.25, 0.001);
+    ASSERT_NEAR(value.radius(), 1.75, 0.001);
 }
 
 TEST(affine_unop, pow) {
@@ -61,8 +64,26 @@ TEST(affine_unop, pow_two_positive_interval_soundness) {
 
 TEST(affine_unop, exp) {
     auto result = AffineForm(Winterval(1, 2)).exp();
-    ASSERT_NEAR(result.min(), -2.816363, 1e-5);
-    ASSERT_NEAR(result.max(), 11.771873, 1e-5);
+    ASSERT_NEAR(result.min(), 2.142368, 1e-5);
+    ASSERT_NEAR(result.max(), std::exp(2.0), 1e-5);
+}
+
+TEST(affine_unop, exp_soundness) {
+    auto result = AffineForm(Winterval(0, 2)).exp();
+    ASSERT_LE(result.min(), 1.0);
+    ASSERT_GE(result.max(), std::exp(2.0));
+}
+
+TEST(affine_unop, exp_exact) {
+    auto result = AffineForm(1.0).exp();
+    ASSERT_DOUBLE_EQ(result.min(), std::exp(1.0));
+    ASSERT_DOUBLE_EQ(result.max(), std::exp(1.0));
+}
+
+TEST(affine_unop, exp_unbounded) {
+    auto result = (AffineForm(1.0) / AffineForm(Winterval(-1, 1))).exp();
+    ASSERT_EQ(result.min(), -INFINITY);
+    ASSERT_EQ(result.max(), INFINITY);
 }
 
 TEST(affine_unop, tanh) {
@@ -128,4 +149,28 @@ TEST(affine_unop, sqrt_negative_interval) {
     auto result = AffineForm(Winterval(-4.0, -1.0)).sqrt();
     ASSERT_TRUE(std::isnan(result.min()));
     ASSERT_TRUE(std::isnan(result.max()));
+}
+
+TEST(affine_unop, pow_non_power_of_two) {
+    ASSERT_DOUBLE_EQ(AffineForm(2.0).pow(5).center(), 32.0);
+    ASSERT_DOUBLE_EQ(AffineForm(2.0).pow(6).center(), 64.0);
+    ASSERT_DOUBLE_EQ(AffineForm(2.0).pow(7).center(), 128.0);
+
+    auto result = AffineForm(Winterval(1, 2)).pow(6);
+    ASSERT_LE(result.min(), 1.0);
+    ASSERT_GE(result.max(), 64.0);
+}
+
+TEST(affine_unop, sqrt_soundness_below_one) {
+    // sqrt(min) + sqrt(max) < 1 used to floor to 0 and divide by it.
+    auto result = AffineForm(Winterval(0.01, 0.04)).sqrt();
+    ASSERT_LE(result.min(), 0.1);
+    ASSERT_GE(result.max(), 0.2);
+    ASSERT_TRUE(std::isfinite(result.min()) && std::isfinite(result.max()));
+}
+
+TEST(affine_unop, sigmoid_large_input) {
+    auto result = AffineForm(Winterval(1000, 1001)).sigmoid();
+    ASSERT_NEAR(result.min(), 1.0, 1e-9);
+    ASSERT_NEAR(result.max(), 1.0, 1e-9);
 }

@@ -153,6 +153,9 @@ SampleRange SampleRange::union_with(const SampleRange &rhs) const {
     return { union_min, union_max };
 }
 std::vector<SampleRange> SampleRange::split(uint32_t n_splits) const {
+    if (n_splits == 0) {
+        throw std::invalid_argument("Attempted to split SampleRange into 0 subranges!");
+    }
     std::vector<SampleRange> result;
     result.reserve(n_splits);
 
@@ -162,7 +165,7 @@ std::vector<SampleRange> SampleRange::split(uint32_t n_splits) const {
 
     for (auto i = 0; i < n_splits; ++i) {
         auto split_min = min_sample + i * step;
-        auto split_max = min_sample + (i + 1) * step;
+        auto split_max = (i == n_splits - 1) ? max_sample : min_sample + (i + 1) * step;
         result.emplace_back(split_min, split_max);
     }
 

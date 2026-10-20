@@ -23,10 +23,9 @@ TEST(affine_scalar, div) {
     ASSERT_EQ(-1.5, min);
     ASSERT_EQ(1, max);
 
-    // TODO: fix scalar division divide by 0 to be consistent with inverse multiplication.
     base = base / 0;
-    // ASSERT_EQ(-INFINITY, base.to_interval().min());
-    // ASSERT_EQ(INFINITY, base.to_interval().max());
+    ASSERT_EQ(-INFINITY, base.to_interval().min());
+    ASSERT_EQ(INFINITY, base.to_interval().max());
 }
 TEST(affine_scalar, add) {
     auto base = AffineForm(Winterval(-2, 3)) + 2;

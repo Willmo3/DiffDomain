@@ -171,8 +171,8 @@ public:
         } else if (_primal_value < 0.0) {
             return { _primal_value.abs(), _deriv_value * -1.0 };
         }
-        // Mixed sign (e.g. an interval spanning zero): conservative bound.
-        return { _primal_value.abs(), _deriv_value.abs() };
+        // Mixed sign (e.g. an interval spanning zero): sign(f) is -1 or 1, so the derivative is f' or -f'.
+        return { _primal_value.abs(), _deriv_value.union_with(_deriv_value * -1.0) };
     }
     /**
      * @return A new dual number representing the result of exp with chain rule appconstlied.
@@ -209,8 +209,8 @@ public:
         } else if (_primal_value < 0.0) {
             return { _primal_value.relu(), _deriv_value * 0.0 };
         }
-        // Mixed sign (e.g. an interval spanning zero): conservative bound.
-        return { _primal_value.relu(), _deriv_value.abs() };
+        // Mixed sign (e.g. an interval spanning zero): the derivative is f' or 0.
+        return { _primal_value.relu(), _deriv_value.union_with(T(0.0)) };
     }
 
     /*

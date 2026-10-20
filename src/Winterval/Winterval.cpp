@@ -209,11 +209,8 @@ Winterval Winterval::relu() const {
     return { 0, _max };
 }
 Winterval Winterval::sigmoid() const {
-    auto exp_min = std::exp(_min);
-    auto exp_max = std::exp(_max);
-    auto lower_sigmoid = exp_min / (1 + exp_min);
-    auto upper_sigmoid = exp_max / (1 + exp_max);
-    return { lower_sigmoid, upper_sigmoid };
+    // 1 / (1 + e^-x) rather than e^x / (1 + e^x), which overflows to inf / inf for large x.
+    return { 1 / (1 + std::exp(-_min)), 1 / (1 + std::exp(-_max)) };
 }
 Winterval Winterval::pow(int power) const {
     if (power < 0) {

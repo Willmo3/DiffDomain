@@ -60,10 +60,13 @@ TEST(dual_unop, abs_zero) {
 }
 
 TEST(dual_unop, abs_mixed_sign_interval) {
-    // Interval spans zero: conservative bound – abs of derivative returned.
+    // Interval spans zero: sign(f) may be -1 or 1, so the derivative is f' or -f'.
     DualNumber x(Winterval(-2, 3), Winterval(1, 1));
     auto result = x.abs();
-    EXPECT_EQ(result, DualNumber(Winterval(0, 3), Winterval(1, 1)));
+    EXPECT_EQ(result, DualNumber(Winterval(0, 3), Winterval(-1, 1)));
+
+    x = DualNumber(Winterval(-1, 1), Winterval(-2, -1));
+    EXPECT_EQ(x.abs().deriv_ref(), Winterval(-2, 2));
 }
 
 TEST(dual_unop, exp) {
@@ -139,12 +142,18 @@ TEST(dual_unop, relu) {
     EXPECT_EQ(result.deriv_ref().min(), 0.0);
     EXPECT_EQ(result.deriv_ref().max(), 0.0);
 
+    // Spans zero: the derivative is f' or 0.
     x = DualNumber(Winterval(-2, 3), Winterval(1, 2));
     result = x.relu();
     EXPECT_EQ(result.primal_ref().min(), 0.0);
     EXPECT_EQ(result.primal_ref().max(), 3.0);
-    EXPECT_EQ(result.deriv_ref().min(), 1.0);
+    EXPECT_EQ(result.deriv_ref().min(), 0.0);
     EXPECT_EQ(result.deriv_ref().max(), 2.0);
+
+    x = DualNumber(Winterval(-2, 3), Winterval(-2, -1));
+    result = x.relu();
+    EXPECT_EQ(result.deriv_ref().min(), -2.0);
+    EXPECT_EQ(result.deriv_ref().max(), 0.0);
 }
 
 TEST(dual_unop, sqrt_point_value) {

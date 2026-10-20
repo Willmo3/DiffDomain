@@ -67,7 +67,7 @@ public:
         archive(_value);
     }
 private:
-    double _value;
+    double _value = 0;
 };
 
 // Note: cannot use reference for rhs because we want to be able to print shortlived values

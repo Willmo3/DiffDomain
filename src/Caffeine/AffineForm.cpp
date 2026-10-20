@@ -108,13 +108,8 @@ AffineForm AffineForm::abs() const {
     if (this->operator>(0)) {
         return clone();
     }
-    // Straddles
-    // Return abs(this.center / 2) + sum (this.noise / 2)
-    auto value = clone();
-    value._center = std::abs(value._center / 2);
-    for (auto &coeff : value._coefficients | std::views::values) {
-        coeff /= 2;
-    }
+    // Straddles: |x| = 2 * relu(x) - x, and relu's DeepZ approximation is sound.
+    auto value = relu() * 2 - *this;
 
 #   ifdef AFFINE_TIME_ABS
     print_debug_info("absolute value", time);
@@ -176,14 +171,16 @@ AffineForm AffineForm::operator*(const AffineForm &right) const {
     // Affine form multiplication is an outer product: each side's error terms are scaled by the other's center.
     auto result = AffineForm(this->_center * right._center);
     const auto lc = this->_center, rc = right._center;
+    // Exact zero times an unbounded (infinite) term is zero, not NaN.
+    auto mul = [](double a, double b) { return a == 0 || b == 0 ? 0.0 : a * b; };
     result._coefficients = merge_coefficients(_coefficients, right._coefficients,
-        [=](double l, double r) { return lc * r + rc * l; },
-        [=](double l) { return rc * l; },
-        [=](double r) { return lc * r; });
+        [=](double l, double r) { return mul(lc, r) + mul(rc, l); },
+        [=](double l) { return mul(rc, l); },
+        [=](double r) { return mul(lc, r); });
 
     // Affine multiplication adds a noise symbol.
     // For now, we add an error w/ coeff rad * rad, following Affapy impl.
-    result.push_symbol(new_noise_symbol(), this->radius() * right.radius());
+    result.push_symbol(new_noise_symbol(), mul(this->radius(), right.radius()));
     if (result._coefficients.size() > MAX_NOISE_SYMBOLS) {
         result.collapse();
     }
@@ -208,23 +205,15 @@ AffineForm AffineForm::pow(uint32_t power) const {
         return AffineForm(1.0);
     }
 
-    auto odd_power = power > 1 && power % 2 == 1;
-    if (odd_power) {
-        // Can descend logarithmically given an even power. We will do the extra mult later.
-        power -= 1;
+    if (power == 1) {
+        return clone();
     }
 
-    auto result = clone();
-    while (power > 1) {
-        // Perform multiply and half power each time until down to pow 1, unit operation.
-        // Insight: squaring intermediate results allows our quick logarithmic descent.
-        result = result * result;
-        power /= 2;
-    }
-
-    if (odd_power) {
-        // Now perform that last standard multiplication we saved.
-        return result * *this;
+    // Exponentiation by squaring: x^n = (x^(n/2))^2, times x once more if n is odd.
+    auto half = pow(power / 2);
+    auto result = half * half;
+    if (power % 2 == 1) {
+        result = result * *this;
     }
 
 #   ifdef AFFINE_TIME_POW
@@ -247,19 +236,25 @@ AffineForm AffineForm::sqrt() const {
         return AffineForm(0);
     }
 
-    auto t = std::floor(std::sqrt(min) + std::sqrt(max));
+    auto t = std::sqrt(min) + std::sqrt(max);
     auto alpha = 1 / t;
     auto dzeta = t / 8 + 0.5 * std::sqrt(min * max) / t;
 
     auto rdelta = std::sqrt(max) - std::sqrt(min);
-    auto delta = rdelta * rdelta / std::floor(8 * t);
+    auto delta = rdelta * rdelta / (8 * t);
 
     return approximate_affine_form(alpha, dzeta, delta);
 }
 AffineForm AffineForm::exp() const {
     auto rad = radius();
     if (rad == INFINITY || std::isnan(rad)) {
-        return AffineForm(Winterval(0, INFINITY));
+        // Unbounded input: return an unbounded form (an infinite-center form would concretize to NaN).
+        auto result = AffineForm(0.0);
+        result.add_noise_symbol(INFINITY);
+        return result;
+    }
+    if (rad == 0) {
+        return AffineForm(std::exp(_center));
     }
 
     auto interval = Winterval(_center - rad, _center + rad);
@@ -270,14 +265,14 @@ AffineForm AffineForm::exp() const {
 
     // Linear interpolation of (min, exp(min)) and (max, exp(max)) fns
     auto alpha = (exp_max - exp_min) / (max - min);
-    auto log_alpha = std::log(alpha); // max point
+    auto log_alpha = std::log(alpha); // tangent point
 
-    // zeta = offset of center
-    auto zeta = alpha * (1 - log_alpha);
-
-    // error of new noise symbol
-    auto max_delta = alpha * (log_alpha - (1 - min)) + exp_min;
+    // exp is convex, so it lies between its tangent at log_alpha and the chord; max_delta is the gap between them.
+    auto max_delta = alpha * (log_alpha - 1 - min) + exp_min;
     auto delta = max_delta / 2; // Convert to radius, coeff of new noise symbol.
+
+    // zeta = offset of center: midway between the tangent and the chord.
+    auto zeta = alpha * (1 - log_alpha) + delta;
 
     return approximate_affine_form(alpha, zeta, delta);
 }
@@ -303,14 +298,12 @@ AffineForm AffineForm::tanh() const {
 AffineForm AffineForm::sigmoid() const {
     auto interval = this->to_interval();
 
-    auto exp_min = std::exp(interval.min());
-    auto exp_max = std::exp(interval.max());
+    // 1 / (1 + e^-x) rather than e^x / (1 + e^x), which overflows to inf / inf for large x.
+    auto sigmoid_min = 1 / (1 + std::exp(-interval.min()));
+    auto sigmoid_max = 1 / (1 + std::exp(-interval.max()));
 
-    auto sigmoid_min = exp_min / (1 + exp_min);
-    auto sigmoid_max = exp_max / (1 + exp_max);
-
-    auto derivative_min = exp_min / std::pow(1 + exp_min, 2);
-    auto derivative_max = exp_max / std::pow(1 + exp_max, 2);
+    auto derivative_min = sigmoid_min * (1 - sigmoid_min);
+    auto derivative_max = sigmoid_max * (1 - sigmoid_max);
     auto min_deviation = std::min(derivative_min, derivative_max);
 
     auto offset = 0.5 * (sigmoid_max + sigmoid_min - min_deviation * (interval.max() + interval.min()));
@@ -454,9 +447,11 @@ AffineForm AffineForm::operator-(double other) const {
     return value;
 }
 AffineForm AffineForm::operator/(double other) const {
-    // Special case: 0. In affine forms, this will set all terms to 0, leading to a unit form.
+    // Special case: 0. Consistent with inv(), keep the form and add an unbounded noise term.
     if (other == 0) {
-        return AffineForm(0.0);
+        auto value = clone();
+        value.add_noise_symbol(INFINITY);
+        return value;
     }
     return operator*(1 / other);
 }
@@ -616,8 +611,9 @@ void AffineForm::push_symbol(noise_symbol_t symbol, double coeff) {
     if (!_coefficients.empty() && _coefficients.back().first >= symbol) {
         auto it = std::ranges::lower_bound(_coefficients, symbol, {}, &coefficients_t::value_type::first);
         _coefficients.insert(it, {symbol, coeff});
+    } else {
+        _coefficients.emplace_back(symbol, coeff);
     }
-    _coefficients.emplace_back(symbol, coeff);
 }
 
 

@@ -106,6 +106,10 @@ TEST(winterval, sigmoid) {
     auto w = Winterval(-1, 1).sigmoid();
     ASSERT_NEAR(0.2689, w.min(), 1e-4);
     ASSERT_NEAR(0.7311, w.max(), 1e-4);
+
+    w = Winterval(1000, 1001).sigmoid();
+    ASSERT_EQ(1.0, w.min());
+    ASSERT_EQ(1.0, w.max());
 }
 
 TEST(winterval, pow) {

@@ -192,8 +192,9 @@ Winterval MixedForm::interval_intersection(const AffineForm &a, const Winterval 
     auto max_intersect = std::min(a_bounds.max(), b.max());
 
     if (min_intersect > max_intersect) {
-        // This can happen e.g. when dividing by 0.
-        max_intersect = min_intersect;
+        // Should rarely be reached, but rounding errors may cause this to emerge.
+        // If this happens, we return to the standard interval bounding operation to preserve soundness.
+        return a_bounds.union_with(b);
     }
 
     return {min_intersect, max_intersect};

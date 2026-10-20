@@ -92,3 +92,22 @@ TEST(affine_binop, split) {
     ASSERT_EQ(Winterval(2, 4), splits[1].to_interval());
     ASSERT_EQ(Winterval(4, 6), splits[2].to_interval());
 }
+TEST(affine_binop, mult_inserts_symbol_once) {
+    // A form holding a symbol newer than the one multiplication allocates must not get it twice.
+    auto s = AffineForm::next_noise_symbol();
+    auto a = AffineForm(0.0, {{s + 100, 1.0}});
+    auto b = AffineForm(Winterval(-1, 1));  // allocates s
+    auto product = a * b;                   // allocates s + 1 with coeff 1 * 1
+    ASSERT_DOUBLE_EQ(product.coeff_of(s + 1), 1.0);
+    ASSERT_DOUBLE_EQ(product.radius(), 1.0);
+}
+
+TEST(affine_binop, zero_divided_by_zero_straddle) {
+    auto result = AffineForm(0.0) / AffineForm(Winterval(-1, 1));
+    ASSERT_EQ(result.min(), 0.0);
+    ASSERT_EQ(result.max(), 0.0);
+
+    result = AffineForm(1.0) / AffineForm(Winterval(-1, 1));
+    ASSERT_EQ(result.min(), -INFINITY);
+    ASSERT_EQ(result.max(), INFINITY);
+}

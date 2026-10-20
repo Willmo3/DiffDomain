@@ -49,3 +49,14 @@ TEST(mixed_misc, split_into_two) {
     EXPECT_EQ(splits[0].interval_bounds(), Winterval(0, 3));
     EXPECT_EQ(splits[1].interval_bounds(), Winterval(3, 6));
 }
+
+TEST(mixed_misc, disjoint_reps_take_hull) {
+    // Disjoint representations mean one is unsound; keep the hull rather than collapsing to a point.
+    auto form = MixedForm(AffineForm(Winterval(0, 1)), Winterval(2, 3));
+    EXPECT_EQ(form.interval_bounds(), Winterval(0, 3));
+}
+
+TEST(mixed_misc, pow_six) {
+    auto form = MixedForm(Winterval(1, 2)).pow(6);
+    EXPECT_EQ(form.interval_bounds(), Winterval(1, 64));
+}

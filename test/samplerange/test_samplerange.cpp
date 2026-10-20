@@ -130,3 +130,6 @@ TEST(samplerange_unary, sqrt_mixed_sign) {
     // Mixed sign interval: negative values produce NaN, positive produce valid sqrt
     EXPECT_TRUE(std::isnan(result.min()) || result.min() >= 0.0);
 }
+TEST(samplerange_misc, split_zero_throws) {
+    EXPECT_THROW(SampleRange(0.0, 1.0).split(0), std::invalid_argument);
+}
