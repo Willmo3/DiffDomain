@@ -135,6 +135,10 @@ AffineForm AffineForm::operator+(const AffineForm &other) const {
 
     // Outer product is union of both fields' error symbols. Common error symbols are added.
     auto value = AffineForm(_center + other._center);
+    if (std::isinf(value._center)) {
+        // Center overflowed.
+        return unbounded();
+    }
     value._coefficients = merge_coefficients(_coefficients, other._coefficients,
         [](double l, double r) { return l + r; },
         [](double l) { return l; },
@@ -156,6 +160,10 @@ AffineForm AffineForm::operator-(const AffineForm &other) const {
 #   endif
 
     auto value = AffineForm(_center - other._center);
+    if (std::isinf(value._center)) {
+        // Center overflowed.
+        return unbounded();
+    }
     value._coefficients = merge_coefficients(_coefficients, other._coefficients,
         [](double l, double r) { return l - r; },
         [](double l) { return l; },
@@ -177,6 +185,10 @@ AffineForm AffineForm::operator*(const AffineForm &right) const {
 
     // Affine form multiplication is an outer product: each side's error terms are scaled by the other's center.
     auto result = AffineForm(this->_center * right._center);
+    if (std::isinf(result._center)) {
+        // Center overflowed: [inf, inf] would wrongly exclude every finite value in range.
+        return unbounded();
+    }
     const auto lc = this->_center, rc = right._center;
     // Exact zero times an unbounded (infinite) term is zero, not NaN.
     auto mul = [](double a, double b) { return a == 0 || b == 0 ? 0.0 : a * b; };
@@ -238,6 +250,10 @@ AffineForm AffineForm::square() const {
     // (c + e)^2 = c^2 + 2ce + e^2, where e = sum(a_i * eps_i) and e^2 lies in [0, rad^2].
     // This approach avoids spurious negatives in even powers
     auto result = AffineForm(_center * _center + rad * rad / 2);
+    if (std::isinf(result._center)) {
+        // Center overflowed.
+        return unbounded();
+    }
     result._coefficients.reserve(_coefficients.size() + 1);
     for (auto [symbol, coeff] : _coefficients) {
         result._coefficients.emplace_back(symbol, 2 * _center * coeff);
@@ -485,6 +501,10 @@ bool AffineForm::operator>=(double other) const {
 AffineForm AffineForm::operator*(double other) const {
     auto value = clone();
     value._center *= other;
+    if (std::isinf(value._center)) {
+        // Center overflowed.
+        return unbounded();
+    }
     for (auto &coeff : value._coefficients | std::views::values) {
         coeff *= other;
     }
@@ -493,6 +513,10 @@ AffineForm AffineForm::operator*(double other) const {
 AffineForm AffineForm::operator+(double other) const {
     auto value = clone();
     value._center += other;
+    if (std::isinf(value._center)) {
+        // Center overflowed.
+        return unbounded();
+    }
     // Notice: addition does not affect error symbols.
     // effectively, the polytope is simply being translated.
     return value;
@@ -500,6 +524,10 @@ AffineForm AffineForm::operator+(double other) const {
 AffineForm AffineForm::operator-(double other) const {
     auto value = clone();
     value._center -= other;
+    if (std::isinf(value._center)) {
+        // Center overflowed.
+        return unbounded();
+    }
     return value;
 }
 AffineForm AffineForm::operator/(double other) const {
@@ -588,6 +616,10 @@ AffineForm AffineForm::approximate_affine_form(double alpha, double zeta, double
     auto center = alpha * _center + zeta;
 
     auto result = AffineForm(center);
+    if (std::isinf(result._center)) {
+        // Center overflowed.
+        return unbounded();
+    }
     result._coefficients.reserve(_coefficients.size() + 1);
     for (auto [symbol, coeff] : _coefficients) {
         result._coefficients.emplace_back(symbol, alpha * coeff);

@@ -407,3 +407,12 @@ TEST(winterval, mid_radius_infinite) {
     ASSERT_EQ(INFINITY, Winterval(2, INFINITY).radius());
     ASSERT_EQ(INFINITY, Winterval(-INFINITY, 2).radius());
 }
+
+TEST(winterval, mul_zero_times_infinite_endpoint) {
+    // 0 * inf was a NaN candidate, and min/max_element returned NaN or skipped it depending on order.
+    ASSERT_EQ(Winterval(-INFINITY, 0), Winterval(-INFINITY, 0) * Winterval(0, 1));
+    ASSERT_EQ(Winterval(-INFINITY, 0), Winterval(0, 1) * Winterval(-INFINITY, 0));
+    ASSERT_EQ(Winterval(0, INFINITY), Winterval(0, 1) * Winterval(1, INFINITY));
+    ASSERT_EQ(Winterval(0, 0), Winterval(0, 0) * Winterval(-INFINITY, INFINITY));
+    ASSERT_EQ(Winterval(0, 0), Winterval(0, 0) * INFINITY);
+}

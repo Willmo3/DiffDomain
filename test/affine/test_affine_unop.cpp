@@ -185,8 +185,8 @@ TEST(affine_unop, sqrt_negative_interval) {
 }
 
 TEST(affine_unop, sqrt_unbounded) {
-    // Center overflows to inf (bounds [inf, inf]); the Chebyshev terms used to yield NaN.
-    auto result = (AffineForm(1e200) * AffineForm(1e200)).sqrt();
+    // Point form at +inf (bounds [inf, inf]); the Chebyshev terms used to yield NaN.
+    auto result = AffineForm(INFINITY).sqrt();
     ASSERT_EQ(result.min(), -INFINITY);
     ASSERT_EQ(result.max(), INFINITY);
 }

@@ -62,12 +62,19 @@ Winterval Winterval::operator+(const Winterval &rhs) const {
 Winterval Winterval::operator-(const Winterval &rhs) const {
     return {_min - rhs._max, _max - rhs._min};
 }
+namespace {
+// Exact zero times an unbounded endpoint is zero, not NaN (a NaN candidate would corrupt min/max_element).
+double mul(double a, double b) {
+    return a == 0 || b == 0 ? 0.0 : a * b;
+}
+}
+
 Winterval Winterval::operator*(const Winterval &rhs) const {
     double values[4];
-    values[0] = _min * rhs._min;
-    values[1] = _max * rhs._min;
-    values[2] = _min * rhs._max;
-    values[3] = _max * rhs._max;
+    values[0] = mul(_min, rhs._min);
+    values[1] = mul(_max, rhs._min);
+    values[2] = mul(_min, rhs._max);
+    values[3] = mul(_max, rhs._max);
 
     return{
         *std::min_element(values, values + 4),
@@ -203,7 +210,7 @@ Winterval Winterval::operator-(double rhs) const {
     return {_min - rhs, _max - rhs};
 }
 Winterval Winterval::operator*(double rhs) const {
-    return {_min * rhs, _max * rhs};
+    return {mul(_min, rhs), mul(_max, rhs)};
 }
 Winterval Winterval::operator/(double rhs) const {
     if (rhs == 0) {

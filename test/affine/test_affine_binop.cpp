@@ -111,3 +111,21 @@ TEST(affine_binop, zero_divided_by_zero_straddle) {
     ASSERT_EQ(result.min(), -INFINITY);
     ASSERT_EQ(result.max(), INFINITY);
 }
+
+TEST(affine_binop, center_overflow_is_unbounded) {
+    // x in [0, 3e154]: x * x is in [0, 9e308], but the center c^2 overflowed and concretized to [inf, nan].
+    auto x = AffineForm(Winterval(0, 3e154));
+    for (const auto &result : {x * x, x.pow(2)}) {
+        ASSERT_EQ(result.min(), -INFINITY);
+        ASSERT_EQ(result.max(), INFINITY);
+    }
+}
+
+TEST(affine_binop, add_sub_center_overflow_is_unbounded) {
+    auto x = AffineForm(Winterval(1e308, 1.7e308));
+    auto y = AffineForm(Winterval(-1.7e308, -1e308));
+    for (const auto &result : {x + x, y - x, x * 2.0, x + 1e308, y - 1e308}) {
+        ASSERT_EQ(result.min(), -INFINITY);
+        ASSERT_EQ(result.max(), INFINITY);
+    }
+}
