@@ -55,6 +55,14 @@ AffineForm::coefficients_t merge_coefficients(const AffineForm::coefficients_t &
     for (; r != right.end(); ++r) result.emplace_back(r->first, right_only(r->second));
     return result;
 }
+
+// Address overflows caused by crappy C arithmetic
+double add(double a, double b) {
+    return std::isinf(a) && std::isinf(b) ? INFINITY : a + b;
+}
+double mul(double a, double b) {
+    return (a == 0 && std::isinf(b)) || (std::isinf(a) && b == 0) ? 0.0 : a * b;
+}
 }
 
 void print_debug_info(const std::string &op_name, const std::chrono::high_resolution_clock::time_point &start_time) {
@@ -140,7 +148,7 @@ AffineForm AffineForm::operator+(const AffineForm &other) const {
         return unbounded();
     }
     value._coefficients = merge_coefficients(_coefficients, other._coefficients,
-        [](double l, double r) { return l + r; },
+        [](double l, double r) { return add(l, r); },
         [](double l) { return l; },
         [](double r) { return r; });
 
@@ -165,7 +173,7 @@ AffineForm AffineForm::operator-(const AffineForm &other) const {
         return unbounded();
     }
     value._coefficients = merge_coefficients(_coefficients, other._coefficients,
-        [](double l, double r) { return l - r; },
+        [](double l, double r) { return add(l, -r); },
         [](double l) { return l; },
         [](double r) { return -r; });
 
@@ -190,10 +198,8 @@ AffineForm AffineForm::operator*(const AffineForm &right) const {
         return unbounded();
     }
     const auto lc = this->_center, rc = right._center;
-    // Exact zero times an unbounded (infinite) term is zero, not NaN.
-    auto mul = [](double a, double b) { return a == 0 || b == 0 ? 0.0 : a * b; };
     result._coefficients = merge_coefficients(_coefficients, right._coefficients,
-        [=](double l, double r) { return mul(lc, r) + mul(rc, l); },
+        [=](double l, double r) { return add(mul(lc, r), mul(rc, l)); },
         [=](double l) { return mul(rc, l); },
         [=](double r) { return mul(lc, r); });
 
@@ -500,13 +506,13 @@ bool AffineForm::operator>=(double other) const {
  */
 AffineForm AffineForm::operator*(double other) const {
     auto value = clone();
-    value._center *= other;
+    value._center = mul(value._center, other);
     if (std::isinf(value._center)) {
         // Center overflowed.
         return unbounded();
     }
     for (auto &coeff : value._coefficients | std::views::values) {
-        coeff *= other;
+        coeff = mul(coeff, other);
     }
     return value;
 }

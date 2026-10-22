@@ -65,7 +65,7 @@ Winterval Winterval::operator-(const Winterval &rhs) const {
 namespace {
 // Exact zero times an unbounded endpoint is zero, not NaN (a NaN candidate would corrupt min/max_element).
 double mul(double a, double b) {
-    return a == 0 || b == 0 ? 0.0 : a * b;
+    return (a == 0 && std::isinf(b)) || (std::isinf(a) && b == 0) ? 0.0 : a * b;
 }
 }
 

@@ -416,3 +416,8 @@ TEST(winterval, mul_zero_times_infinite_endpoint) {
     ASSERT_EQ(Winterval(0, 0), Winterval(0, 0) * Winterval(-INFINITY, INFINITY));
     ASSERT_EQ(Winterval(0, 0), Winterval(0, 0) * INFINITY);
 }
+
+TEST(winterval, mul_nan_times_zero_stays_nan) {
+    auto undefined = Winterval(-1, -1).sqrt();
+    ASSERT_TRUE(std::isnan((undefined * 0.0).min()));
+}

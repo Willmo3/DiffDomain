@@ -129,3 +129,24 @@ TEST(affine_binop, add_sub_center_overflow_is_unbounded) {
         ASSERT_EQ(result.max(), INFINITY);
     }
 }
+
+TEST(affine_binop, unbounded_shared_symbol_cancellation) {
+    // The shared infinite coefficient gave inf - inf = NaN.
+    auto x = AffineForm(1.0) / AffineForm(Winterval(-1, 1));
+    for (const auto &result : {x - x, x + x * -1.0, x * (x - 2.0)}) {
+        ASSERT_EQ(result.min(), -INFINITY);
+        ASSERT_EQ(result.max(), INFINITY);
+    }
+}
+
+TEST(affine_binop, unbounded_times_zero) {
+    // inf * 0 coefficients were NaN; any real times 0 is 0.
+    auto x = AffineForm(1.0) / AffineForm(Winterval(-1, 1));
+    ASSERT_EQ((x * 0.0).min(), 0.0);
+    ASSERT_EQ((x * 0.0).max(), 0.0);
+}
+
+TEST(affine_binop, nan_times_zero_stays_nan) {
+    // NaN signals an undefined value (e.g. sqrt of a negative); multiplying by 0 must not hide it.
+    ASSERT_TRUE(std::isnan((AffineForm(NAN) * 0.0).center()));
+}
