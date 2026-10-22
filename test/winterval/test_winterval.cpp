@@ -361,3 +361,32 @@ TEST(winterval, mid_no_overflow) {
     // Subnormal point interval keeps its value.
     ASSERT_EQ(5e-324, Winterval(5e-324, 5e-324).mid());
 }
+
+TEST(winterval, scalar_div_zero_keeps_zero_endpoint) {
+    // 0 * inf used to make the 0 endpoint NaN.
+    ASSERT_EQ(Winterval(0, INFINITY), Winterval(0, 1) / 0.0);
+    ASSERT_EQ(Winterval(-INFINITY, 0), Winterval(-1, 0) / 0.0);
+    ASSERT_EQ(Winterval(-INFINITY, INFINITY), Winterval(-1, 1) / 0.0);
+}
+
+TEST(winterval, split_huge_bounds) {
+    // max - min overflowed, making every subinterval NaN.
+    auto splits = Winterval(-1e308, 1e308).split(2);
+    ASSERT_EQ(Winterval(-1e308, 0), splits[0]);
+    ASSERT_EQ(Winterval(0, 1e308), splits[1]);
+}
+
+TEST(winterval, split_infinite_bounds) {
+    auto splits = Winterval(2, INFINITY).split(3);
+    ASSERT_EQ(3u, splits.size());
+    for (auto split : splits) {
+        ASSERT_EQ(Winterval(2, INFINITY), split);
+    }
+}
+
+TEST(winterval, mid_radius_infinite) {
+    ASSERT_EQ(0.0, Winterval(-INFINITY, INFINITY).mid());
+    ASSERT_EQ(INFINITY, Winterval(-INFINITY, INFINITY).radius());
+    ASSERT_EQ(INFINITY, Winterval(2, INFINITY).radius());
+    ASSERT_EQ(INFINITY, Winterval(-INFINITY, 2).radius());
+}

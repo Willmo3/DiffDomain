@@ -214,3 +214,44 @@ TEST(affine_unop, sigmoid_large_input) {
     ASSERT_NEAR(result.min(), 1.0, 1e-9);
     ASSERT_NEAR(result.max(), 1.0, 1e-9);
 }
+
+TEST(affine_unop, exp_overflow) {
+    // exp(710) overflows: the chord slope was inf and the center inf - inf = NaN.
+    auto result = AffineForm(Winterval(700, 710)).exp();
+    ASSERT_LE(result.min(), std::exp(700.0));
+    ASSERT_EQ(result.max(), INFINITY);
+}
+
+TEST(affine_unop, exp_underflow) {
+    // exp underflows to 0 at both ends: the chord slope was 0 and log(0) = -inf gave NaN.
+    auto result = AffineForm(Winterval(-800, -790)).exp();
+    ASSERT_LE(result.min(), 0.0);
+    ASSERT_GE(result.max(), 0.0);
+    ASSERT_TRUE(std::isfinite(result.min()) && std::isfinite(result.max()));
+}
+
+TEST(affine_unop, tanh_sigmoid_huge_bounds) {
+    // Saturated endpoints: min_deviation = 0 times an overflowing width gave NaN.
+    auto x = AffineForm(Winterval(1e308, 1.7e308));
+    ASSERT_DOUBLE_EQ(x.tanh().min(), 1.0);
+    ASSERT_DOUBLE_EQ(x.tanh().max(), 1.0);
+    ASSERT_DOUBLE_EQ(x.sigmoid().min(), 1.0);
+    ASSERT_DOUBLE_EQ(x.sigmoid().max(), 1.0);
+}
+
+TEST(affine_unop, tanh_sigmoid_unbounded) {
+    auto x = AffineForm(1.0) / AffineForm(Winterval(-1, 1));
+    ASSERT_DOUBLE_EQ(x.tanh().min(), -1.0);
+    ASSERT_DOUBLE_EQ(x.tanh().max(), 1.0);
+    ASSERT_DOUBLE_EQ(x.sigmoid().min(), 0.0);
+    ASSERT_DOUBLE_EQ(x.sigmoid().max(), 1.0);
+}
+
+TEST(affine_unop, tanh_sigmoid_nan_interval) {
+    // Center overflow plus an infinite term concretizes to NaN; tanh and sigmoid are still bounded.
+    auto x = AffineForm(1e200) * AffineForm(1e200) + AffineForm(1.0) / AffineForm(Winterval(-1, 1));
+    ASSERT_DOUBLE_EQ(x.tanh().min(), -1.0);
+    ASSERT_DOUBLE_EQ(x.tanh().max(), 1.0);
+    ASSERT_DOUBLE_EQ(x.sigmoid().min(), 0.0);
+    ASSERT_DOUBLE_EQ(x.sigmoid().max(), 1.0);
+}

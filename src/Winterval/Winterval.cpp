@@ -37,11 +37,19 @@ double Winterval::max() const {
     return _max;
 }
 double Winterval::mid() const {
+    if (_min == -INFINITY && _max == INFINITY) {
+        // [-inf, inf]: inf - inf would be NaN.
+        return 0;
+    }
     // Halve first only when the sum overflows. This avoids overflow on large values and rounding problems on small values.
     auto sum = _min + _max;
     return std::isfinite(sum) ? sum / 2 : _min / 2 + _max / 2;
 }
 double Winterval::radius() const {
+    if (std::isinf(_min) || std::isinf(_max)) {
+        // An infinite mid would give inf - inf = NaN.
+        return INFINITY;
+    }
     return _max - mid();
 }
 
@@ -128,7 +136,12 @@ std::vector<Winterval> Winterval::split(uint32_t n_splits) const {
     if (n_splits == 0) {
         throw std::invalid_argument("Attempted to split Winterval into 0 subintervals!");
     }
-    double interval_size = (_max - _min) / n_splits;
+    if (std::isinf(_min) || std::isinf(_max)) {
+        // Infinite width can't be divided (and 0 * inf = NaN): each piece covers the whole interval.
+        return std::vector(n_splits, *this);
+    }
+    // Divide before subtracting: max - min overflows for large bounds.
+    double interval_size = _max / n_splits - _min / n_splits;
     std::vector<Winterval> subintervals;
     for (auto i = 0; i < n_splits; i++) {
         double sub_min = _min + i * interval_size;
@@ -187,7 +200,9 @@ Winterval Winterval::operator*(double rhs) const {
 }
 Winterval Winterval::operator/(double rhs) const {
     if (rhs == 0) {
-        return {_min * INFINITY, _max * INFINITY};
+        // Signed infinity per endpoint; a 0 endpoint stays 0 rather than 0 * inf = NaN.
+        auto blow_up = [](double v) { return v == 0 ? 0.0 : v * INFINITY; };
+        return {blow_up(_min), blow_up(_max)};
     }
     return {_min / rhs, _max / rhs};
 }

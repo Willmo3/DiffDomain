@@ -278,6 +278,11 @@ private:
     AffineForm clone() const;
 
     /**
+     * @return A form covering [-inf, inf]: center 0, one infinite noise term.
+     */
+    static AffineForm unbounded();
+
+    /**
      * Collapse all the error symbols in this affine form to a single, high-magnitude error.
      */
     void collapse();

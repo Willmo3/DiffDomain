@@ -86,3 +86,17 @@ TEST(affine_misc, interval_constructor_infinite_endpoint) {
         ASSERT_EQ(x.abs().max(), INFINITY);
     }
 }
+
+TEST(affine_misc, union_with_unbounded) {
+    // The union's mid was NaN (or inf), poisoning the center.
+    auto unbounded = AffineForm(1.0) / AffineForm(Winterval(-1, 1));
+    auto result = unbounded.union_with(AffineForm(Winterval(0, 1)));
+    ASSERT_EQ(result.min(), -INFINITY);
+    ASSERT_EQ(result.max(), INFINITY);
+}
+
+TEST(affine_misc, split_huge_bounds) {
+    auto splits = AffineForm(Winterval(-1e308, 1e308)).split(2);
+    ASSERT_EQ(splits[0].min(), -1e308);
+    ASSERT_EQ(splits[1].max(), 1e308);
+}

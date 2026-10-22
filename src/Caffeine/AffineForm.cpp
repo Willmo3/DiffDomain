@@ -80,8 +80,8 @@ AffineForm::AffineForm(double center, coefficients_t starting_coeffs):
 }
 AffineForm::AffineForm(const Winterval &interval): _center(interval.mid()) {
     if (std::isinf(interval.min()) || std::isinf(interval.max())) {
-        _center = 0;
-        _coefficients = {{new_noise_symbol(), INFINITY}};
+        // An infinite endpoint has no finite center.
+        *this = unbounded();
         return;
     }
     // Radius from the computed center, not (max - min) / 2, which overflows for large bounds.
@@ -258,10 +258,8 @@ AffineForm AffineForm::sqrt() const {
         return AffineForm(NAN);
     }
     if (max == INFINITY || std::isnan(min) || std::isnan(max)) {
-        // Unbounded input: return an unbounded form (the Chebyshev terms would be inf/inf = NaN).
-        auto result = AffineForm(0.0);
-        result.add_noise_symbol(INFINITY);
-        return result;
+        // Unbounded input: the Chebyshev terms would be inf/inf = NaN.
+        return unbounded();
     }
     if (min == 0 && max == 0) {
         // special case: min, max both 0 -- we know value is 0.
@@ -280,10 +278,8 @@ AffineForm AffineForm::sqrt() const {
 AffineForm AffineForm::exp() const {
     auto rad = radius();
     if (rad == INFINITY || std::isnan(rad)) {
-        // Unbounded input: return an unbounded form (an infinite-center form would concretize to NaN).
-        auto result = AffineForm(0.0);
-        result.add_noise_symbol(INFINITY);
-        return result;
+        // Unbounded input: an infinite-center form would concretize to NaN.
+        return unbounded();
     }
     if (rad == 0) {
         return AffineForm(std::exp(_center));
@@ -294,9 +290,15 @@ AffineForm AffineForm::exp() const {
     auto max = interval.max();
     auto exp_min = std::exp(min);
     auto exp_max = std::exp(max);
+    if (exp_max == INFINITY) {
+        return unbounded();
+    }
 
     // Linear interpolation of (min, exp(min)) and (max, exp(max)) fns
     auto alpha = (exp_max - exp_min) / (max - min);
+    if (!(alpha > 0) || alpha == INFINITY) {
+        return AffineForm(Winterval(exp_min, exp_max));
+    }
     auto log_alpha = std::log(alpha); // tangent point
 
     // exp is convex, so it lies between its tangent at log_alpha and the chord; max_delta is the gap between them.
@@ -311,6 +313,9 @@ AffineForm AffineForm::exp() const {
 AffineForm AffineForm::tanh() const {
     // use approximation from DeepZ
     auto interval = this->to_interval();
+    if (std::isnan(interval.min()) || std::isnan(interval.max())) {
+        return AffineForm(Winterval(-1, 1));
+    }
     auto tanh_min = std::tanh(interval.min());
     auto tanh_max = std::tanh(interval.max());
 
@@ -318,6 +323,10 @@ AffineForm AffineForm::tanh() const {
     auto derivative_max = 1 - std::pow(tanh_max, 2);
 
     auto min_deviation = std::min(derivative_min, derivative_max);
+    if (min_deviation == 0) {
+        // Min deviation = 0 deletes all correlation, so we return with this as a special case.
+        return AffineForm(Winterval(tanh_min, tanh_max));
+    }
 
     auto offset = 0.5 * (tanh_max + tanh_min - min_deviation * (interval.max() + interval.min()));
     auto noise_coeff = 0.5 * (tanh_max - tanh_min - min_deviation * (interval.max() - interval.min()));
@@ -329,6 +338,9 @@ AffineForm AffineForm::tanh() const {
 }
 AffineForm AffineForm::sigmoid() const {
     auto interval = this->to_interval();
+    if (std::isnan(interval.min()) || std::isnan(interval.max())) {
+        return AffineForm(Winterval(0, 1));
+    }
 
     // 1 / (1 + e^-x) rather than e^x / (1 + e^x), which overflows to inf / inf for large x.
     auto sigmoid_min = 1 / (1 + std::exp(-interval.min()));
@@ -337,6 +349,10 @@ AffineForm AffineForm::sigmoid() const {
     auto derivative_min = sigmoid_min * (1 - sigmoid_min);
     auto derivative_max = sigmoid_max * (1 - sigmoid_max);
     auto min_deviation = std::min(derivative_min, derivative_max);
+    if (min_deviation == 0) {
+        // Min deviation = 0 deletes all correlation, so we return with this as a special case.
+        return AffineForm(Winterval(sigmoid_min, sigmoid_max));
+    }
 
     auto offset = 0.5 * (sigmoid_max + sigmoid_min - min_deviation * (interval.max() + interval.min()));
     auto noise_coeff = 0.5 * (sigmoid_max - sigmoid_min - min_deviation * (interval.max() - interval.min()));
@@ -356,10 +372,8 @@ AffineForm AffineForm::relu() const {
     }
 
     if (interval.max() == INFINITY || std::isnan(interval.min()) || std::isnan(interval.max())) {
-        // Unbounded input: return an unbounded form (the DeepZ terms would be inf/inf = NaN).
-        auto result = AffineForm(0.0);
-        result.add_noise_symbol(INFINITY);
-        return result;
+        // Unbounded input: the DeepZ terms would be inf/inf = NaN.
+        return unbounded();
     }
 
     // Intersections derived form DeepZ: slope u / (u - l), error radius -u * l / (2 * (u - l)).
@@ -384,6 +398,9 @@ AffineForm AffineForm::relu() const {
 AffineForm AffineForm::union_with(const AffineForm &other) const {
     // using join formula from Taylor1+ (https://link.springer.com/chapter/10.1007/978-3-642-02658-4_47)
     auto interval_union = to_interval().union_with(other.to_interval());
+    if (!std::isfinite(interval_union.min()) || !std::isfinite(interval_union.max())) {
+        return unbounded();
+    }
     auto result = AffineForm(interval_union.mid());
     // Each coefficient is argmin(|l|, |r|) over [min(l, r), max(l, r)]
     result._coefficients = merge_coefficients(_coefficients, other._coefficients,
@@ -632,6 +649,12 @@ AffineForm AffineForm::inv() const {
 // Internal clone constructor
 AffineForm AffineForm::clone() const {
     return *this;
+}
+
+AffineForm AffineForm::unbounded() {
+    auto result = AffineForm(0.0);
+    result.add_noise_symbol(INFINITY);
+    return result;
 }
 
 void AffineForm::collapse() {
