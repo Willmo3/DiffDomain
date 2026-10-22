@@ -94,7 +94,14 @@ Winterval Winterval::operator/(const Winterval &rhs) const {
         if (_max > 0) {
             candidate_values[n_candidates++] = -INFINITY;
         }
-    } else if (rhs.contains(0)) {
+    } else if (rhs._min < 0 && rhs._max > 0) {
+        // 0 strictly inside: divisors approach 0 from both sides, so any nonzero numerator reaches both infinities.
+        if (_min < 0 || _max > 0) {
+            candidate_values[n_candidates++] = -INFINITY;
+            candidate_values[n_candidates++] = INFINITY;
+        }
+    } else if (rhs._min == 0) {
+        // if min = 0, approaching from right -- positive infinitesimal
         // negative / inf = -inf
         if (_min < 0) {
             candidate_values[n_candidates++] = -INFINITY;

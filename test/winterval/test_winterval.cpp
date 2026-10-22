@@ -53,18 +53,35 @@ TEST(winterval, div) {
     ASSERT_EQ(-INFINITY, div.min());
     ASSERT_EQ(INFINITY, div.max());
 
+    // A divisor straddling 0 reaches both infinities for any nonzero numerator (e.g. 2 / -0.001 = -2000).
     left = Winterval(0, 2);
     div = left / right;
 
-    ASSERT_EQ(-1, div.min());
+    ASSERT_EQ(-INFINITY, div.min());
     ASSERT_EQ(INFINITY, div.max());
 
     left = Winterval(-2, 0);
     div = left / right;
 
     ASSERT_EQ(-INFINITY, div.min());
-    ASSERT_EQ(1, div.max());
+    ASSERT_EQ(INFINITY, div.max());
 
+    left = Winterval(1, 1);
+    div = left / Winterval(-1, 1);
+
+    ASSERT_EQ(-INFINITY, div.min());
+    ASSERT_EQ(INFINITY, div.max());
+
+    // Zero numerator stays zero.
+    div = Winterval(0, 0) / Winterval(-1, 1);
+    ASSERT_EQ(Winterval(0, 0), div);
+
+    // One-sided divisors still give one infinity.
+    ASSERT_EQ(Winterval(1, INFINITY), Winterval(1, 1) / Winterval(0, 1));
+    ASSERT_EQ(Winterval(-INFINITY, -1), Winterval(1, 1) / Winterval(-1, 0));
+    ASSERT_EQ(Winterval(-1, -0.5), Winterval(1, 1) / Winterval(-2, -1));
+
+    left = Winterval(-2, 0);
     right = Winterval(0, 0);
     div = left / right;
 
