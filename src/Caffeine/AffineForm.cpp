@@ -231,6 +231,12 @@ AffineForm AffineForm::sqrt() const {
         // return NAN if negative value possible -- not defined for real semantics
         return AffineForm(NAN);
     }
+    if (max == INFINITY || std::isnan(min) || std::isnan(max)) {
+        // Unbounded input: return an unbounded form (the Chebyshev terms would be inf/inf = NaN).
+        auto result = AffineForm(0.0);
+        result.add_noise_symbol(INFINITY);
+        return result;
+    }
     if (min == 0 && max == 0) {
         // special case: min, max both 0 -- we know value is 0.
         return AffineForm(0);

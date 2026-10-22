@@ -151,6 +151,13 @@ TEST(affine_unop, sqrt_negative_interval) {
     ASSERT_TRUE(std::isnan(result.max()));
 }
 
+TEST(affine_unop, sqrt_unbounded) {
+    // Infinite upper bound (center inf => NaN concretization) used to yield NaN.
+    auto result = AffineForm(Winterval(2.0, INFINITY)).sqrt();
+    ASSERT_EQ(result.min(), -INFINITY);
+    ASSERT_EQ(result.max(), INFINITY);
+}
+
 TEST(affine_unop, pow_non_power_of_two) {
     ASSERT_DOUBLE_EQ(AffineForm(2.0).pow(5).center(), 32.0);
     ASSERT_DOUBLE_EQ(AffineForm(2.0).pow(6).center(), 64.0);
