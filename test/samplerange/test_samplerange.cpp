@@ -133,3 +133,20 @@ TEST(samplerange_unary, sqrt_mixed_sign) {
 TEST(samplerange_misc, split_zero_throws) {
     EXPECT_THROW(SampleRange(0.0, 1.0).split(0), std::invalid_argument);
 }
+
+TEST(samplerange_misc, huge_bounds_no_overflow) {
+    // max - min overflowed: samples were inf/NaN and the radius NaN.
+    SampleRange a(-1e308, 1e308);
+    EXPECT_GE(a.min(), -1e308);
+    EXPECT_LE(a.max(), 1e308);
+    EXPECT_LT(a.min(), 0.0);
+    EXPECT_GT(a.max(), 0.0);
+    EXPECT_TRUE(std::isfinite(a.radius()));
+}
+
+TEST(samplerange_misc, huge_bounds_split) {
+    auto splits = SampleRange(-1e308, 1e308).split(4);
+    for (const auto &split : splits) {
+        EXPECT_TRUE(std::isfinite(split.min()) && std::isfinite(split.max()));
+    }
+}

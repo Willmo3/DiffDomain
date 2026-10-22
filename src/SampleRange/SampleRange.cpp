@@ -4,6 +4,7 @@
 
 #include "SampleRange.hpp"
 
+#include <cmath>
 #include <utility>
 
 /*
@@ -16,8 +17,16 @@ SampleRange::SampleRange(double value) : _samples(Eigen::VectorXd::Constant(SAMP
 
 SampleRange::SampleRange(double min, double max) {
     // Generate random values in [min, max] using Eigen's Random() method
-    // Random() generates values in [-1, 1], so scale to [0, 1] then to [min, max]
-    _samples = min + (max - min) * (Eigen::VectorXd::Random(SAMPLED_VALUES).array() + 1.0) / 2.0;
+    // Random() generates values in [-1, 1], so scale to t in [0, 1] then to [min, max].
+    // Materialized: a lazy Random() expression would draw new values on each use of t.
+    const Eigen::ArrayXd t = (Eigen::ArrayXd::Random(SAMPLED_VALUES) + 1.0) / 2.0;
+    // If max - min overflows, use a convex combination instead (it rounds less exactly, e.g. for point ranges).
+    const auto width = max - min;
+    if (std::isfinite(width)) {
+        _samples = min + width * t;
+    } else {
+        _samples = min * (1.0 - t) + max * t;
+    }
 }
 
 SampleRange::SampleRange(Eigen::VectorXd samples) : _samples(std::move(samples)) {
@@ -36,7 +45,8 @@ double SampleRange::max() const {
     return _samples.maxCoeff();
 }
 double SampleRange::radius() const {
-    return (max() - min()) / 2.0;
+    // Halve before subtracting: max - min overflows for large bounds.
+    return max() / 2.0 - min() / 2.0;
 }
 
 /*
@@ -161,7 +171,8 @@ std::vector<SampleRange> SampleRange::split(uint32_t n_splits) const {
 
     auto min_sample = min();
     auto max_sample = max();
-    auto step = (max_sample - min_sample) / n_splits;
+    // Divide before subtracting: max - min overflows for large bounds.
+    auto step = max_sample / n_splits - min_sample / n_splits;
 
     for (auto i = 0; i < n_splits; ++i) {
         auto split_min = min_sample + i * step;
