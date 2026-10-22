@@ -118,6 +118,30 @@ TEST(affine_unop, relu) {
     ASSERT_EQ(result.max(), 2);
 }
 
+TEST(affine_unop, relu_unbounded) {
+    auto result = (AffineForm(1.0) / AffineForm(Winterval(-1, 1))).relu();
+    ASSERT_EQ(result.min(), -INFINITY);
+    ASSERT_EQ(result.max(), INFINITY);
+}
+
+TEST(affine_unop, relu_huge_bounds_no_overflow) {
+    // u - l and u * l overflow here; the DeepZ terms used to come out NaN.
+    // Radius 1.6e308 is finite, but u - l = 3.2e308 overflows.
+    auto x = AffineForm(Winterval(-0.8e308, 0.8e308)) + AffineForm(Winterval(-0.8e308, 0.8e308));
+    auto result = x.relu();
+    ASSERT_LE(result.min(), 0.0);
+    ASSERT_GE(result.max(), 1.6e308);
+    ASSERT_TRUE(std::isfinite(result.min()) && std::isfinite(result.max()));
+}
+
+TEST(affine_unop, abs_huge_bounds_no_overflow) {
+    auto x = AffineForm(Winterval(-0.8e308, 0.8e308)) + AffineForm(Winterval(-0.8e308, 0.8e308));
+    auto result = x.abs();
+    ASSERT_LE(result.min(), 0.0);
+    ASSERT_GE(result.max(), 1.6e308);
+    ASSERT_TRUE(std::isfinite(result.min()) && std::isfinite(result.max()));
+}
+
 TEST(affine_unop, sqrt_point_interval) {
     auto result = AffineForm(Winterval(4.0)).sqrt();
     ASSERT_NEAR(result.min(), 2, 1e-5);
@@ -161,8 +185,8 @@ TEST(affine_unop, sqrt_negative_interval) {
 }
 
 TEST(affine_unop, sqrt_unbounded) {
-    // Infinite upper bound (center inf => NaN concretization) used to yield NaN.
-    auto result = AffineForm(Winterval(2.0, INFINITY)).sqrt();
+    // Center overflows to inf (bounds [inf, inf]); the Chebyshev terms used to yield NaN.
+    auto result = (AffineForm(1e200) * AffineForm(1e200)).sqrt();
     ASSERT_EQ(result.min(), -INFINITY);
     ASSERT_EQ(result.max(), INFINITY);
 }

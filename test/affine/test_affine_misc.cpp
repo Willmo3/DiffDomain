@@ -3,6 +3,7 @@
 //
 
 #include "gtest/gtest.h"
+#include <cmath>
 #include <thread>
 #include <unordered_set>
 
@@ -66,4 +67,22 @@ TEST(affine_misc, noise_symbols_unique_across_threads) {
         }
     }
     ASSERT_EQ(symbols.size(), static_cast<size_t>(n_threads * per_thread));
+}
+
+TEST(affine_misc, interval_constructor_huge_bounds) {
+    // (max - min) / 2 overflowed here, making the form unbounded.
+    auto x = AffineForm(Winterval(-1e308, 1e308));
+    ASSERT_EQ(x.center(), 0.0);
+    ASSERT_EQ(x.min(), -1e308);
+    ASSERT_EQ(x.max(), 1e308);
+}
+
+TEST(affine_misc, interval_constructor_infinite_endpoint) {
+    // An infinite center used to concretize to NaN.
+    for (auto interval : {Winterval(2, INFINITY), Winterval(-INFINITY, -2), Winterval(-INFINITY, INFINITY)}) {
+        auto x = AffineForm(interval);
+        ASSERT_EQ(x.min(), -INFINITY);
+        ASSERT_EQ(x.max(), INFINITY);
+        ASSERT_EQ(x.abs().max(), INFINITY);
+    }
 }

@@ -354,3 +354,10 @@ TEST(winterval, pow_even_tight) {
     ASSERT_EQ(Winterval(1, 9), Winterval(-3, -1).pow(2));
     ASSERT_EQ(Winterval(0, 0), Winterval(0, 0).pow(2));
 }
+
+TEST(winterval, mid_no_overflow) {
+    ASSERT_EQ(1.5e308, Winterval(1.4e308, 1.6e308).mid());
+    ASSERT_EQ(0.0, Winterval(-1.7e308, 1.7e308).mid());
+    // Subnormal point interval keeps its value.
+    ASSERT_EQ(5e-324, Winterval(5e-324, 5e-324).mid());
+}

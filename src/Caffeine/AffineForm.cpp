@@ -78,8 +78,15 @@ AffineForm::AffineForm(double center, coefficients_t starting_coeffs):
         collapse();
     }
 }
-AffineForm::AffineForm(const Winterval &interval): _center((interval.min() + interval.max()) / 2),
-    _coefficients{{new_noise_symbol(), (interval.min() - interval.max()) / 2}} {}
+AffineForm::AffineForm(const Winterval &interval): _center(interval.mid()) {
+    if (std::isinf(interval.min()) || std::isinf(interval.max())) {
+        _center = 0;
+        _coefficients = {{new_noise_symbol(), INFINITY}};
+        return;
+    }
+    // Radius from the computed center, not (max - min) / 2, which overflows for large bounds.
+    _coefficients = {{new_noise_symbol(), -std::max(interval.max() - _center, _center - interval.min())}};
+}
 AffineForm::AffineForm(double value): _center(value) {}
 AffineForm::AffineForm(): _center(0) {}
 
@@ -348,12 +355,22 @@ AffineForm AffineForm::relu() const {
         return AffineForm(0);
     }
 
-    // Intersections derived form DeepZ
+    if (interval.max() == INFINITY || std::isnan(interval.min()) || std::isnan(interval.max())) {
+        // Unbounded input: return an unbounded form (the DeepZ terms would be inf/inf = NaN).
+        auto result = AffineForm(0.0);
+        result.add_noise_symbol(INFINITY);
+        return result;
+    }
+
+    // Intersections derived form DeepZ: slope u / (u - l), error radius -u * l / (2 * (u - l)).
+    // Rearranged so u - l and u * l are never formed, since they overflow for large finite bounds.
     auto upper = interval.max();
     auto lower = interval.min();
 
-    auto intersection_point = upper / (upper - lower);
-    auto error_rad = -0.5 * upper * lower / (upper - lower);
+    auto intersection_point = 1 / (1 - lower / upper);
+    auto inf = std::min(upper, -lower);
+    auto sup = std::max(upper, -lower);
+    auto error_rad = 0.5 * inf / (1 + inf / sup);
 
     auto result = *this * intersection_point;
     result._center += error_rad;

@@ -37,7 +37,9 @@ double Winterval::max() const {
     return _max;
 }
 double Winterval::mid() const {
-    return (_min + _max) / 2;
+    // Halve first only when the sum overflows. This avoids overflow on large values and rounding problems on small values.
+    auto sum = _min + _max;
+    return std::isfinite(sum) ? sum / 2 : _min / 2 + _max / 2;
 }
 double Winterval::radius() const {
     return _max - mid();
