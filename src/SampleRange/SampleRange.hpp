@@ -147,6 +147,16 @@ public:
      */
     [[nodiscard]] std::vector<SampleRange> split(uint32_t n_splits) const;
 
+    /**
+     * Elementwise maximum: sample i is the larger of the two ranges' sample i.
+     * Unlike union_with, keeps each sample tied to its own concrete run, and draws no random values.
+     * Not part of the Numeric concept.
+     *
+     * @param rhs Other SampleRange to take the maximum with.
+     * @return A new SampleRange holding the samplewise maxima.
+     */
+    [[nodiscard]] SampleRange pointwise_max(const SampleRange &rhs) const;
+
     /*
      * Utility functions
      */

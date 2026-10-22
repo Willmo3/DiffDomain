@@ -150,3 +150,14 @@ TEST(samplerange_misc, huge_bounds_split) {
         EXPECT_TRUE(std::isfinite(split.min()) && std::isfinite(split.max()));
     }
 }
+
+TEST(samplerange_misc, pointwise_max) {
+    Eigen::VectorXd ascending = Eigen::VectorXd::LinSpaced(SampleRange::SAMPLED_VALUES, 0.0, 1.0);
+    Eigen::VectorXd descending = 1.0 - ascending.array();
+    SampleRange result = SampleRange(ascending).pointwise_max(SampleRange(descending));
+
+    // Samplewise, not a union: no sample falls below 0.5, though both ranges reach 0.
+    EXPECT_EQ(result, SampleRange(Eigen::VectorXd(ascending.cwiseMax(descending))));
+    EXPECT_NEAR(result.min(), 0.5, 1e-3);
+    EXPECT_EQ(result.max(), 1.0);
+}

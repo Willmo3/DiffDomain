@@ -183,6 +183,10 @@ std::vector<SampleRange> SampleRange::split(uint32_t n_splits) const {
     return result;
 }
 
+SampleRange SampleRange::pointwise_max(const SampleRange &rhs) const {
+    return { _samples.cwiseMax(rhs._samples) };
+}
+
 /*
  * Utility functions
  */
