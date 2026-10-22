@@ -39,7 +39,7 @@ class AffineForm {
 
 // Number of noise symbols a given affine form can accumulate before the symbols are collapsed.
 // 512 maintains parity with Phocus
-#define MAX_NOISE_SYMBOLS 512
+#define MAX_NOISE_SYMBOLS 8192
 
 public:
     /**
@@ -286,6 +286,11 @@ private:
      * Append a coefficient for a freshly allocated symbol, keeping _coefficients sorted.
      */
     void push_symbol(noise_symbol_t symbol, double coeff);
+
+    /**
+     * @return this * this, but bounding the quadratic term in [0, rad^2] rather than [-rad^2, rad^2].
+     */
+    [[nodiscard]] AffineForm square() const;
 
     /*
      * Fields

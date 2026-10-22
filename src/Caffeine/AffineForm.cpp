@@ -211,7 +211,7 @@ AffineForm AffineForm::pow(uint32_t power) const {
 
     // Exponentiation by squaring: x^n = (x^(n/2))^2, times x once more if n is odd.
     auto half = pow(power / 2);
-    auto result = half * half;
+    auto result = half.square();
     if (power % 2 == 1) {
         result = result * *this;
     }
@@ -220,6 +220,25 @@ AffineForm AffineForm::pow(uint32_t power) const {
     print_debug_info("multiplication", time);
 #   endif
 
+    return result;
+}
+AffineForm AffineForm::square() const {
+    auto rad = radius();
+    if (rad == INFINITY || std::isnan(rad)) {
+        return *this * *this;
+    }
+
+    // (c + e)^2 = c^2 + 2ce + e^2, where e = sum(a_i * eps_i) and e^2 lies in [0, rad^2].
+    // This approach avoids spurious negatives in even powers
+    auto result = AffineForm(_center * _center + rad * rad / 2);
+    result._coefficients.reserve(_coefficients.size() + 1);
+    for (auto [symbol, coeff] : _coefficients) {
+        result._coefficients.emplace_back(symbol, 2 * _center * coeff);
+    }
+    result.push_symbol(new_noise_symbol(), rad * rad / 2);
+    if (result._coefficients.size() > MAX_NOISE_SYMBOLS) {
+        result.collapse();
+    }
     return result;
 }
 AffineForm AffineForm::sqrt() const {
@@ -349,10 +368,7 @@ AffineForm AffineForm::union_with(const AffineForm &other) const {
     // using join formula from Taylor1+ (https://link.springer.com/chapter/10.1007/978-3-642-02658-4_47)
     auto interval_union = to_interval().union_with(other.to_interval());
     auto result = AffineForm(interval_union.mid());
-    // Each coefficient is argmin(|l|, |r|) over [min(l, r), max(l, r)]: the smaller-magnitude one, sign kept,
-    // or 0 when the signs differ. A symbol missing from one side counts as 0 there, so it drops out.
-    // This keeps |l - result| = |l| - |result| (and likewise for r), which is what lets the single error
-    // term below cover both operands for every assignment of the shared symbols.
+    // Each coefficient is argmin(|l|, |r|) over [min(l, r), max(l, r)]
     result._coefficients = merge_coefficients(_coefficients, other._coefficients,
         [](double l, double r) {
             if ((l > 0 && r > 0) || (l < 0 && r < 0)) {

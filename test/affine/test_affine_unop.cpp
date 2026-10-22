@@ -35,8 +35,9 @@ TEST(affine_unop, abs) {
 
 TEST(affine_unop, pow) {
     auto value = AffineForm(Winterval(1, 2)).pow(3);
-    ASSERT_NEAR(value.center(), 3.375, 0.001);
-    ASSERT_NEAR(value.radius(), 4.625, 0.001);
+    // Range [-0.875, 8] (was [-1.25, 8] before pow squared with a non-negative quadratic term).
+    ASSERT_NEAR(value.center(), 3.5625, 0.001);
+    ASSERT_NEAR(value.radius(), 4.4375, 0.001);
 }
 
 TEST(affine_unop, pow_zero) {
@@ -54,6 +55,14 @@ TEST(affine_unop, pow_two_soundness) {
     auto result = AffineForm(Winterval(1, 3)).pow(2);
     ASSERT_LE(result.min(), 1.0);
     ASSERT_GE(result.max(), 9.0);
+}
+
+TEST(affine_unop, pow_two_straddling_zero_non_negative) {
+    // x * x would give [-1, 1]; squaring knows the result is non-negative.
+    auto result = AffineForm(Winterval(-1, 1)).pow(2);
+    ASSERT_DOUBLE_EQ(result.min(), 0.0);
+    ASSERT_DOUBLE_EQ(result.max(), 1.0);
+    ASSERT_FALSE(std::isnan(result.sqrt().center()));
 }
 
 TEST(affine_unop, pow_two_positive_interval_soundness) {
