@@ -17,10 +17,11 @@ SampleRange::SampleRange(double value) : _samples(Eigen::VectorXd::Constant(SAMP
 
 SampleRange::SampleRange(double min, double max) {
     // Generate random values in [min, max] using Eigen's Random() method
-    // Random() generates values in [-1, 1], so scale to t in [0, 1] then to [min, max].
-    // Materialized: a lazy Random() expression would draw new values on each use of t.
-    const Eigen::ArrayXd t = (Eigen::ArrayXd::Random(SAMPLED_VALUES) + 1.0) / 2.0;
-    // If max - min overflows, use a convex combination instead (it rounds less exactly, e.g. for point ranges).
+    Eigen::ArrayXd t = (Eigen::ArrayXd::Random(SAMPLED_VALUES) + 1.0) / 2.0;
+    // Samples 0 and 1 are pinned to min and max.
+    t(0) = 0.0;
+    t(1) = 1.0;
+    // overflow protection
     const auto width = max - min;
     if (std::isfinite(width)) {
         _samples = min + width * t;

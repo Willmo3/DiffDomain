@@ -81,15 +81,15 @@ TEST(samplerange_unary, tanh) {
     SampleRange a(0.0, 1.0);
     SampleRange result = a.tanh();
 
-    EXPECT_GT(result.min(), std::tanh(0.0));
-    EXPECT_LT(result.max(), std::tanh(1.0));
+    EXPECT_DOUBLE_EQ(result.min(), std::tanh(0.0));
+    EXPECT_DOUBLE_EQ(result.max(), std::tanh(1.0));
 }
 TEST(samplerange_unary, sigmoid) {
     SampleRange a(0.0, 1.0);
     SampleRange result = a.sigmoid();
 
-    EXPECT_GT(result.min(), 0.5);
-    EXPECT_LT(result.max(), 0.74);
+    EXPECT_DOUBLE_EQ(result.min(), 0.5);
+    EXPECT_DOUBLE_EQ(result.max(), 1.0 / (1.0 + std::exp(-1.0)));
 }
 
 TEST(samplerange_unary, relu) {
@@ -160,4 +160,13 @@ TEST(samplerange_misc, pointwise_max) {
     EXPECT_EQ(result, SampleRange(Eigen::VectorXd(ascending.cwiseMax(descending))));
     EXPECT_NEAR(result.min(), 0.5, 1e-3);
     EXPECT_EQ(result.max(), 1.0);
+}
+
+TEST(samplerange_misc, corner_samples) {
+    // Sample 0 is every range's min and sample 1 its max, so (a + b)'s range covers the all-min and all-max runs.
+    SampleRange a(-1.0, 2.0);
+    SampleRange b(3.0, 5.0);
+    SampleRange sum = a + b;
+    EXPECT_EQ(sum.min(), 2.0);
+    EXPECT_EQ(sum.max(), 7.0);
 }

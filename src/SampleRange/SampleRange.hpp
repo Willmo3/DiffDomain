@@ -31,6 +31,7 @@ public:
     explicit SampleRange(double value);
     /**
      * Construct a SampleRange uniformly sampled between min and max.
+     * Sample 0 is exactly min and sample 1 exactly max
      * @param min Minimum value of the range.
      * @param max Maximum value of the range.
      */
